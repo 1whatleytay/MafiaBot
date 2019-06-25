@@ -13,7 +13,7 @@ namespace MafiaBot {
             Investigator
         }
 
-        private static Embed GetRoleDMEmbed(Role role) {
+        private static Embed GetRoleEmbed(Role role) {
             switch (role) {
                 case Role.Citizen:
                     return new EmbedBuilder()
@@ -48,13 +48,21 @@ namespace MafiaBot {
 
         public async Task TellRole() {
             var dm = await _client.GetUser(_userId).GetOrCreateDMChannelAsync();
-            await dm.SendMessageAsync("", false, GetRoleDMEmbed(_role));
+            await dm.SendMessageAsync("", false, GetRoleEmbed(_role));
         }
         
         public void AssignRole(Role role) {
             _role = role;
         }
 
+        public Role GetRole() {
+            return _role;
+        }
+
+        public SocketUser GetUser() {
+            return _client.GetUser(_userId);
+        }
+        
         public ulong GetId() {
             return _userId;
         }

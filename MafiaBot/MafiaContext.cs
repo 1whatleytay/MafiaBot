@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
+using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 
@@ -10,18 +12,19 @@ using Context = Discord.Commands.ModuleBase<Discord.Commands.SocketCommandContex
 
 namespace MafiaBot {
     public class MafiaContext {
-        private const double MafiaPercentage = 0.22;
+        private const double MafiaPercentage = 0.20;
         
         private enum GameStatus {
             Lobby,
             InGame,
-            Closed,
+            Closed
         }
         
         private readonly DiscordSocketClient _client;
         private readonly ulong _guildId;
         private readonly List<MafiaPlayer> _players = new List<MafiaPlayer>();
         private GameStatus _gameStatus = GameStatus.Closed;
+        private Thread _gameThread;
 
         private SocketGuild GetGuild() {
             return _client.GetGuild(_guildId);
@@ -39,12 +42,23 @@ namespace MafiaBot {
             return GetCategory().Channels.First(x => x.Name == "mafia") as SocketTextChannel;
         }
 
-        private void MuteGeneral() {
-            // TODO: Implement for night time.
+        private async Task ChannelVisibility(SocketTextChannel channel, Func<MafiaPlayer, bool> filter) {
+            foreach (var player in _players) {
+                var permission = filter(player) ? PermValue.Allow : PermValue.Deny;
+                await channel.AddPermissionOverwriteAsync(player.GetUser(),
+                    new OverwritePermissions(
+                        viewChannel: permission,
+                        sendMessages: permission
+                    ));
+            }
         }
 
         private async Task<RestUserMessage> SendGeneral(string text) {
             return await GetGeneral().SendMessageAsync(text);
+        }
+
+        private async Task RunGame() {
+            // Put Day/Night Cycle here
         }
 
         private async Task AssignRoles() {
@@ -66,12 +80,11 @@ namespace MafiaBot {
 
         private async Task InitializeGame() {
             await SendGeneral("Game is starting!");
-
+            
             await AssignRoles();
+            await ChannelVisibility(GetMafia(), x => x.GetRole() == MafiaPlayer.Role.Mafia);
 
-            // Add Mafia to GetMafia()
-            // Start thread for night/day cycle.
-            // Do the rest.
+            _gameThread = new Thread(() => { RunGame().RunSynchronously(); });
         }
 
         public async Task JoinGame(ulong user) {
@@ -106,7 +119,7 @@ namespace MafiaBot {
             }
 
             if (_players.Count < 3) {
-                await SendGeneral("You cannot start a game without at least 3 players. Get some friends together :D");
+                await SendGeneral($"You can't play mafia with only {_players.Count} players. You need at least 3!");
                 return;
             }
 
@@ -115,6 +128,8 @@ namespace MafiaBot {
         }
 
         public async Task Reset() {
+            await ChannelVisibility(GetMafia(), x => true);
+            
             _players.Clear();
             _gameStatus = GameStatus.Closed;
 
