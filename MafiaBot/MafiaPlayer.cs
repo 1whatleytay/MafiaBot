@@ -45,8 +45,7 @@ namespace MafiaBot {
         private readonly DiscordSocketClient _client;
         private readonly ulong _userId;
         private Role _role = Role.Citizen;
-        private bool _alive = true;
-
+        
         public async Task TellRole() {
             var dm = await _client.GetUser(_userId).GetOrCreateDMChannelAsync();
             await dm.SendMessageAsync("", false, GetRoleEmbed(_role));

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,11 +9,11 @@ using Discord.WebSocket;
 
 namespace MafiaBot {
     public class MafiaChannels {
-        protected readonly DiscordSocketClient _client;
+        protected readonly DiscordSocketClient Client;
         private readonly ulong _guildId;
         
         private SocketGuild GetGuild() {
-            return _client.GetGuild(_guildId);
+            return Client.GetGuild(_guildId);
         }
 
         private SocketCategoryChannel GetCategory() {
@@ -25,6 +26,18 @@ namespace MafiaBot {
 
         protected SocketTextChannel GetMafia() {
             return GetCategory().Channels.FirstOrDefault(x => x.Name == "mafia") as SocketTextChannel;
+        }
+        
+        protected async Task ChannelVisibility(SocketTextChannel channel, List<MafiaPlayer> players,
+            Func<MafiaPlayer, bool> filter, bool onlySending = false) {
+            foreach (var player in players) {
+                var permission = filter(player) ? PermValue.Allow : PermValue.Deny;
+                await channel.AddPermissionOverwriteAsync(player.GetUser(),
+                    new OverwritePermissions(
+                        viewChannel: onlySending ? PermValue.Allow : permission,
+                        sendMessages: permission
+                    ));
+            }
         }
 
         public bool IsValidGameChannel(ulong channel) {
@@ -75,7 +88,7 @@ namespace MafiaBot {
         }
 
         protected MafiaChannels(DiscordSocketClient client, ulong guildId) {
-            _client = client;
+            Client = client;
             _guildId = guildId;
         }
     }

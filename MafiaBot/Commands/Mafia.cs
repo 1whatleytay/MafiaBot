@@ -78,7 +78,16 @@ namespace MafiaBot.Commands {
                 return;
             }
             
-            game.VoteFor(new MafiaVote(Context.Message, vote));
+            await game.VoteFor(new MafiaVote(Context.Message, vote));
+        }
+
+        [Command("reset")]
+        [Summary("Prepares for the next game.")]
+        public async Task Reset() {
+            var game = GetOrCreateGame(Context);
+            if (!await EnsureSetup(game)) return;
+
+            await game.Reset();
         }
     }
 }
