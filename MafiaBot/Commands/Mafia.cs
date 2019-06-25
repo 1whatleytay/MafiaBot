@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 using Discord.Commands;
 using Discord.WebSocket;
@@ -21,11 +21,33 @@ namespace MafiaBot.Commands {
         private static MafiaContext GetOrCreateGame(SocketCommandContext context) {
             return GetOrCreateGame(context.Client, context.Guild.Id);
         }
+
+        private async Task<bool> EnsureSetup(MafiaContext context) {
+            if (!context.IsSetup()) {
+                await ReplyAsync("Woah! I don't think we're set up yet. Set up with `-setup`.");
+                return false;
+            }
+
+            return true;
+        }
+
+        [Command("setup")]
+        [Summary("Gets all cozy and comfy in your server so you can start playing games!")]
+        public async Task Setup() {
+            var game = GetOrCreateGame(Context);
+            if (game.IsSetup()) {
+                await ReplyAsync("Mafia is already set up.");
+                return;
+            }
+            
+            await game.Setup();
+        }
         
         [Command("create")]
         [Summary("Creates a game lobby.")]
         public async Task Create() {
             var game = GetOrCreateGame(Context);
+            if (!await EnsureSetup(game)) return;
             await game.Create();
         }
         
@@ -33,6 +55,7 @@ namespace MafiaBot.Commands {
         [Summary("Joins a lobby.")]
         public async Task Join() {
             var game = GetOrCreateGame(Context);
+            if (!await EnsureSetup(game)) return;
             await game.JoinGame(Context.Message.Author.Id);
         }
         
@@ -40,7 +63,22 @@ namespace MafiaBot.Commands {
         [Summary("Starts a game.")]
         public async Task Start() {
             var game = GetOrCreateGame(Context);
+            if (!await EnsureSetup(game)) return;
             await game.Start();
+        }
+
+        [Command("vote")]
+        [Summary("Vote for a specific person.")]
+        public async Task Vote(int vote) {
+            var game = GetOrCreateGame(Context);
+            if (!await EnsureSetup(game)) return;
+            
+            if (!game.IsValidGameChannel(Context.Channel.Id)) {
+                await ReplyAsync("Please, only vote in a game channel- under the \"mafia\" category.");
+                return;
+            }
+            
+            game.VoteFor(new MafiaVote(Context.Message, vote));
         }
     }
 }
