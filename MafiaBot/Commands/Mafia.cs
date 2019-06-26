@@ -66,6 +66,15 @@ namespace MafiaBot.Commands {
             if (!await EnsureSetup(game)) return;
             await game.Start();
         }
+        
+        [Command("reset")]
+        [Summary("Prepares for the next game.")]
+        public async Task Reset() {
+            var game = GetOrCreateGame(Context);
+            if (!await EnsureSetup(game)) return;
+
+            await game.Reset();
+        }
 
         [Command("vote")]
         [Summary("Vote for a specific person.")]
@@ -74,20 +83,25 @@ namespace MafiaBot.Commands {
             if (!await EnsureSetup(game)) return;
             
             if (!game.IsValidGameChannel(Context.Channel.Id)) {
-                await ReplyAsync("Please, only vote in a game channel- under the \"mafia\" category.");
+                await ReplyAsync("Please, only vote in a game channel- under the \"Mafia\" category.");
                 return;
             }
             
             await game.VoteFor(new MafiaVote(Context.Message, vote));
         }
 
-        [Command("reset")]
-        [Summary("Prepares for the next game.")]
-        public async Task Reset() {
+        [Command("select")]
+        [Summary("Select someone to perform an action on.")]
+        public async Task Select(int vote) {
             var game = GetOrCreateGame(Context);
             if (!await EnsureSetup(game)) return;
 
-            await game.Reset();
+            if (!game.IsValidGameChannel(Context.Channel.Id)) {
+                await ReplyAsync("Please, only vote in a game channel- under the \"Mafia\" category.");
+                return;
+            }
+
+            await game.Select(new MafiaVote(Context.Message, vote));
         }
     }
 }

@@ -39,6 +39,37 @@ namespace MafiaBot {
                     ));
             }
         }
+        
+        protected async Task ChannelVisibility(SocketTextChannel channel, List<MafiaPlayer> players,
+            bool visible, bool onlySending = false) {
+            var permission = visible ? PermValue.Allow : PermValue.Deny;
+            
+            foreach (var player in players) {
+                await channel.AddPermissionOverwriteAsync(player.GetUser(),
+                    new OverwritePermissions(
+                        viewChannel: onlySending ? PermValue.Allow : permission,
+                        sendMessages: permission
+                    ));
+            }
+        }
+
+        protected async Task ChannelVisibility(SocketTextChannel channel, bool visible, bool onlySending = false) {
+            var permission = visible ? PermValue.Allow : PermValue.Deny;
+            
+            await channel.AddPermissionOverwriteAsync(GetGuild().EveryoneRole,
+                new OverwritePermissions(
+                    viewChannel: onlySending ? PermValue.Allow : permission,
+                    sendMessages: permission
+                ));
+        }
+
+        protected async Task EveryoneOnlyVisibility(SocketTextChannel channel) {
+            foreach (var permissionOverwrite in channel.PermissionOverwrites) {
+                if (permissionOverwrite.TargetType == PermissionTarget.User) {
+                    await channel.RemovePermissionOverwriteAsync(GetGuild().GetUser(permissionOverwrite.TargetId));
+                }
+            }
+        }
 
         public bool IsValidGameChannel(ulong channel) {
             return GetGeneral().Id == channel || GetMafia().Id == channel;
