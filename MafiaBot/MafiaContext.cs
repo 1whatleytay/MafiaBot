@@ -58,6 +58,16 @@ namespace MafiaBot {
 
         private List<MafiaPlayer> _selectOptions;
         private MafiaVote? _selection;
+
+        private Dictionary<ulong, int> VoteScores(List<MafiaVote> votes) {
+            var scores = new Dictionary<ulong, int>();
+            
+            foreach (var vote in votes) {
+                scores[vote.Voter]++;
+            }
+
+            return scores;
+        }
         
         private WinReason CheckGameWin() {
             if (_gameStatus == GameStatus.Closed) return WinReason.Closed;
@@ -118,9 +128,10 @@ namespace MafiaBot {
             MafiaPlayer selected;
             if (validVotes.Count < 1)
                 selected = null;
-            else
+            else {
                 selected = _voteOptions[validVotes[Utils.Random.Next(validVotes.Count)].Vote - 1];
-            
+            }
+
             _voteOptions = null;
 
             return selected;
@@ -134,7 +145,8 @@ namespace MafiaBot {
             var validVotes = new List<MafiaVote>();
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            while (stopwatch.ElapsedMilliseconds < CitizenVoteTime) {
+            while (stopwatch.ElapsedMilliseconds < CitizenVoteTime
+                   && VoteScores(validVotes).Max(x => x.Value) < Math.Ceiling(Players.Count / 2.0)) {
                 while (_voteQueue.Count > 0) {
                     var vote = _voteQueue.Dequeue();
                     
@@ -148,7 +160,7 @@ namespace MafiaBot {
                         continue;
                     }
                     
-                    if (_voteOptions[vote.Vote].GetId() == vote.Voter) {
+                    if (_voteOptions[vote.Vote - 1].GetId() == vote.Voter) {
                         await SendGeneral("You can't vote for yourself.");
                         continue;
                     }
@@ -203,49 +215,54 @@ namespace MafiaBot {
         }
 
         private async Task RunGame() {
-            while (CheckGameWin() == WinReason.NoWinYet) {
-                // Night Time
-                await ChannelVisibility(GetGeneral(), Players, false, true);
-                var mafiaToKill = await DoMafiaVote();
-                await SendGeneral("Mafia is done voting.");
+            try {
+                while (CheckGameWin() == WinReason.NoWinYet) {
+                    // Night Time
+                    await ChannelVisibility(GetGeneral(), Players, false, true);
+                    var mafiaToKill = await DoMafiaVote();
+                    await SendGeneral("Mafia is done voting.");
 
-                var doctorToSave = new List<MafiaPlayer>();
-                foreach (var player in Players) {
-                    if (player.GetRole() != MafiaPlayer.Role.Doctor) continue;
+                    var doctorToSave = new List<MafiaPlayer>();
+                    foreach (var player in Players) {
+                        if (player.GetRole() != MafiaPlayer.Role.Doctor) continue;
 
-                    var save = await DoDoctorSelect(player);
-                    if (save != null)
-                        doctorToSave.Add(save);
+                        var save = await DoDoctorSelect(player);
+                        if (save != null)
+                            doctorToSave.Add(save);
+                    }
+
+                    if (mafiaToKill != null && !doctorToSave.Contains(mafiaToKill))
+                        await Kill(mafiaToKill);
+
+                    if (CheckGameWin() != WinReason.NoWinYet) break;
+
+                    // Day Time
+                    await ChannelVisibility(GetGeneral(), Players, true);
+                    var newsBuilder = new StringBuilder();
+                    if (mafiaToKill == null)
+                        newsBuilder.Append("The mafia was asleep and didn't do anything.\n");
+                    else {
+                        newsBuilder.Append($"<@{mafiaToKill.GetId()}> was attacked by the mafia last night.\n");
+                        if (doctorToSave.Contains(mafiaToKill))
+                            newsBuilder.Append($"<@{mafiaToKill.GetId()}> was saved by a doctor!\n");
+                    }
+                    await SendGeneral("Wake up everyone! Here's the rundown.\n" + newsBuilder + "Discuss!");
+
+                    Thread.Sleep(DiscussionTime);
+
+                    var citizenToKill = await DoCitizenVote();
+                    if (citizenToKill == null) {
+                        await SendGeneral("No one died! Time for bed.");
+                    } else {
+                        await SendGeneral($"<@{citizenToKill.GetId()}> was killed. Now for the next day.");
+                        await Kill(citizenToKill);
+                    }
                 }
 
-                if (mafiaToKill != null && !doctorToSave.Contains(mafiaToKill))
-                    await Kill(mafiaToKill);
-
-                if (CheckGameWin() != WinReason.NoWinYet) break;
-                
-                // Day Time
-                await ChannelVisibility(GetGeneral(), Players, true);
-                var newsBuilder = new StringBuilder();
-                if (mafiaToKill == null)
-                    newsBuilder.Append("The mafia was asleep and didn't do anything.\n");
-                else {
-                    newsBuilder.Append($"<@{mafiaToKill.GetId()}> was attacked by the mafia last night.\n");
-                    if (doctorToSave.Contains(mafiaToKill))
-                        newsBuilder.Append($"<@{mafiaToKill.GetId()}> was saved by a doctor!\n");
-                }
-                await SendGeneral("Wake up everyone! Here's the rundown.\n" + newsBuilder + "Discuss!");
-                
-                Thread.Sleep(DiscussionTime);
-                
-                var citizenToKill = await DoCitizenVote();
-                if (citizenToKill == null) {
-                    await SendGeneral("No one died! Time for bed.");
-                } else {
-                    await SendGeneral($"<@{citizenToKill.GetId()}> was killed. Now for the next day.");
-                }
+                await SendGeneral("Game is over. " + WinReasonExplanation(CheckGameWin()));
+            } catch (Exception e) {
+                await SendGeneral(Utils.Code("RunGame() Exception -> " + e.Message + "\n\n" + e.StackTrace));
             }
-
-            await SendGeneral("Game is over. " + WinReasonExplanation(CheckGameWin()));
         }
 
         private async Task InitializeGame() {

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 
 using Discord.Commands;
 using Discord.WebSocket;
@@ -19,6 +20,10 @@ namespace MafiaBot.Commands {
         }
 
         private static MafiaContext GetOrCreateGame(SocketCommandContext context) {
+            if (context.Guild == null) {
+                var game = Games.Where(x => x.Value.HasPlayer(context.Message.Author.Id)).ToList();
+                return game.Any() ? game[0].Value : null;
+            }
             return GetOrCreateGame(context.Client, context.Guild.Id);
         }
 
@@ -95,11 +100,6 @@ namespace MafiaBot.Commands {
         public async Task Select(int vote) {
             var game = GetOrCreateGame(Context);
             if (!await EnsureSetup(game)) return;
-
-            if (!game.IsValidGameChannel(Context.Channel.Id)) {
-                await ReplyAsync("Please, only vote in a game channel- under the \"Mafia\" category.");
-                return;
-            }
 
             await game.Select(new MafiaVote(Context.Message, vote));
         }
