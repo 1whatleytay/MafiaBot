@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Discord;
@@ -11,7 +12,8 @@ namespace MafiaBot {
             Citizen,
             Mafia,
             Doctor,
-            Investigator
+            Investigator,
+            Silencer,
         }
 
         private static Embed GetRoleEmbed(Role role) {
@@ -35,6 +37,11 @@ namespace MafiaBot {
                     return new EmbedBuilder()
                         .WithColor(Color.Orange)
                         .WithTitle("You are the Investigator!")
+                        .Build();
+                case Role.Silencer:
+                    return new EmbedBuilder()
+                        .WithColor(Color.DarkPurple)
+                        .WithTitle("You are the Silencer!")
                         .Build();
                 default:
                     return new EmbedBuilder()

@@ -32,11 +32,6 @@ namespace MafiaBot {
             NoWinYet
         }
 
-        private enum DeathReason {
-            MafiaAttacked,
-            VotedOut
-        }
-
         private static string WinReasonExplanation(WinReason reason) {
             switch (reason) {
                 case WinReason.Closed:
@@ -82,10 +77,10 @@ namespace MafiaBot {
         private WinReason CheckGameWin() {
             if (_gameStatus == GameStatus.Closed) return WinReason.Closed;
             
-            var good = Players.Count(IsGood);
+            var notMafia = Players.Count(IsNotMafia);
             var mafia = Players.Count(IsMafia);
 
-            if (mafia >= good) return WinReason.MafiaIsHalf;
+            if (mafia >= notMafia) return WinReason.MafiaIsHalf;
             if (mafia == 0) return WinReason.EvilIsDead;
 
             return WinReason.NoWinYet;
@@ -104,7 +99,7 @@ namespace MafiaBot {
 
         private async Task<MafiaPlayer> DoMafiaVote() {
             await SendGeneral("Waiting for Mafia...");
-            _voteOptions = Players.Where(IsGood).ToList();
+            _voteOptions = Players.Where(IsNotMafia).ToList();
             await SendMafia("Who do want to kill? Vote with `-vote <number>`:\n"
                             + Utils.Code(BuildVoteOptions(_voteOptions)));
 
@@ -255,11 +250,49 @@ namespace MafiaBot {
                 var isGood = IsGood(_selectOptions[_selection.Value.Vote]);
                 await dm.SendMessageAsync("The person you investigated... "
                                           + (isGood ? "seems normal." : "is suspicious."));
-            } else {
-                await dm.SendMessageAsync("You didn't investigate anyone. What a shame.");
             }
             
             _selectOptions = null;
+        }
+
+        public async Task<MafiaPlayer> DoSilencerSelect(MafiaPlayer player) {
+            await SendGeneral("Waiting for Silencer.");
+            _selectOptions = Players.Where(x => x.GetId() != player.GetId()).ToList();
+                
+            var dm = await player.GetDM();
+            await dm.SendMessageAsync("Who do you want to silence? Select someone with `-select <number>`:\n"
+                                      + Utils.Code(BuildVoteOptions(_selectOptions)));
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            while (stopwatch.ElapsedMilliseconds < SelectTime) {
+                if (!_selection.HasValue) continue;
+                    
+                if (_selection.Value.Voter != player.GetId()) {
+                    var wrong = await Players.First(x => x.GetId() == _selection.Value.Voter).GetDM();
+                    await wrong.SendMessageAsync("Wait until its your turn to select something.");
+                } else if (_selection.Value.Vote <= 0 || _selection.Value.Vote > _selectOptions.Count) {
+                    await dm.SendMessageAsync($"Please select a valid option (1 - {_selectOptions.Count}).");
+                } else {
+                    break;
+                }
+                    
+                _selection = null;
+            }
+            MafiaPlayer selection = null;
+            
+            if (_selection.HasValue) {
+                await dm.SendMessageAsync("You silenced "
+                                          + _selectOptions[_selection.Value.Vote].GetUser().Username + ".");
+                selection = _selectOptions[_selection.Value.Vote - 1];
+            } else {
+                await dm.SendMessageAsync("You were too quiet. No one was silenced.");
+            }
+            
+            _selectOptions = null;
+
+            return selection;
         }
 
         private async Task RunGame() {
@@ -286,13 +319,26 @@ namespace MafiaBot {
                         await DoInvestigatorSelect(player);
                     }
 
+                    var silencerToSilence = new List<MafiaPlayer>();
+                    foreach (var player in Players) {
+                        if (player.GetRole() != MafiaPlayer.Role.Silencer) continue;
+
+                        silencerToSilence.Add(await DoSilencerSelect(player));
+                    }
+
                     if (mafiaToKill != null && !doctorToSave.Contains(mafiaToKill))
                         await Kill(mafiaToKill);
+
+                    foreach (var silenced in silencerToSilence) {
+                        var dm = await silenced.GetDM();
+                        await dm.SendMessageAsync("You have been silenced! You aren't able to say anything!");
+                    }
 
                     if (CheckGameWin() != WinReason.NoWinYet) break;
 
                     // Day Time
-                    await ChannelVisibility(GetGeneral(), Players, true);
+                    await ChannelVisibility(GetGeneral(),
+                        Players.Where(x => !silencerToSilence.Contains(x)).ToList(), true);
                     var newsBuilder = new StringBuilder();
                     if (mafiaToKill == null)
                         newsBuilder.Append("The mafia was asleep and didn't do anything.\n");
@@ -306,6 +352,7 @@ namespace MafiaBot {
                     Thread.Sleep(DiscussionTime);
 
                     var citizenToKill = await DoCitizenVote();
+                    
                     if (citizenToKill == null) {
                         await SendGeneral("No one died! Time for bed.");
                     } else {
