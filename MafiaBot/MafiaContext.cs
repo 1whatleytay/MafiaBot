@@ -60,6 +60,8 @@ namespace MafiaBot {
             var scores = new Dictionary<int, int>();
             
             foreach (var vote in votes) {
+                if (!scores.ContainsKey(vote.Vote))
+                    scores[vote.Vote] = 0;
                 scores[vote.Vote]++;
             }
 
@@ -141,7 +143,7 @@ namespace MafiaBot {
             return selected;
         }
 
-        private async Task<MafiaPlayer> DoCitizenVote() {
+        private async Task<MafiaPlayer> DoCitizenVote(List<MafiaPlayer> cannotVote) {
             _voteOptions = new List<MafiaPlayer>(Players);
             await SendGeneral("Anyone suspicious? Vote for someone to kill with `-vote <number>`:\n"
                               + Utils.Code(BuildVoteOptions(_voteOptions)));
@@ -150,12 +152,18 @@ namespace MafiaBot {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             while (stopwatch.ElapsedMilliseconds < CitizenVoteTime
-                   && VoteScores(validVotes).Max(x => x.Value) < Math.Ceiling(Players.Count / 2.0)) {
+                   && !(validVotes.Count > 0
+                        && VoteScores(validVotes).Max(x => x.Value) >= Math.Ceiling(Players.Count / 2.0))) {
                 while (_voteQueue.Count > 0) {
                     var vote = _voteQueue.Dequeue();
                     
                     if (vote.Channel != GetGeneral().Id) {
                         Console.WriteLine("Ignored non-#general vote during mafia vote.");
+                        continue;
+                    }
+
+                    if (cannotVote.Exists(x => x.GetId() == vote.Voter)) {
+                        Console.WriteLine("Ignored silenced vote.");
                         continue;
                     }
                     
@@ -351,7 +359,7 @@ namespace MafiaBot {
 
                     Thread.Sleep(DiscussionTime);
 
-                    var citizenToKill = await DoCitizenVote();
+                    var citizenToKill = await DoCitizenVote(silencerToSilence);
                     
                     if (citizenToKill == null) {
                         await SendGeneral("No one died! Time for bed.");

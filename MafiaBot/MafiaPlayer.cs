@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Discord;
@@ -13,7 +12,7 @@ namespace MafiaBot {
             Mafia,
             Doctor,
             Investigator,
-            Silencer,
+            Silencer
         }
 
         private static Embed GetRoleEmbed(Role role) {
