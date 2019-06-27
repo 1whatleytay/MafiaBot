@@ -83,6 +83,7 @@ namespace MafiaBot.Commands {
             if (!await EnsureSetup(game)) return;
 
             await game.Reset();
+            await ReplyAsync("Game has been reset.");
         }
 
         [Command("config")]

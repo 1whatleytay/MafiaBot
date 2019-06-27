@@ -203,7 +203,8 @@ namespace MafiaBot {
                     var stopwatch = new Stopwatch();
                     stopwatch.Start();
                     var validVotes = new List<MafiaVote>();
-                    while (stopwatch.ElapsedMilliseconds < NightTime) {
+                    while (stopwatch.ElapsedMilliseconds < NightTime
+                           && (_selectOptions.Count > 0 || validVotes.Count < Players.Count(IsMafia))) {
                         // -vote
                         while (_voteQueue.Count > 0) {
                             var vote = _voteQueue.Dequeue();
@@ -312,6 +313,7 @@ namespace MafiaBot {
                 }
 
                 await SendGeneral("Game is over. " + WinReasonExplanation(CheckGameWin()));
+                await Reset();
             } catch (Exception e) {
                 await SendGeneral(Utils.Code("RunGame() Exception -> " + e.Message + "\n\n" + e.StackTrace));
             }
@@ -416,8 +418,6 @@ namespace MafiaBot {
             Players.Clear();
             Killed.Clear();
             _gameStatus = GameStatus.Closed;
-
-            await SendGeneral("Game has been reset.");
         }
 
         public MafiaContext(DiscordSocketClient client, ulong guildId) : base(client, guildId) { }
