@@ -1,11 +1,14 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.IO;
+
+using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 
 using MafiaBot.Roles;
@@ -55,8 +58,11 @@ namespace MafiaBot {
         private List<MafiaPlayer> _voteOptions;
         private readonly Queue<MafiaVote> _voteQueue = new Queue<MafiaVote>();
 
-        private Dictionary<ulong, List<MafiaPlayer>> _selectOptions = new Dictionary<ulong, List<MafiaPlayer>>();
+        private readonly Dictionary<ulong, List<MafiaPlayer>> _selectOptions
+            = new Dictionary<ulong, List<MafiaPlayer>>();
         private readonly Queue<MafiaVote> _selectQueue = new Queue<MafiaVote>();
+
+        private RestUserMessage _lobbyMessage;
 
         private Dictionary<int, int> VoteScores(List<MafiaVote> votes) {
             var scores = new Dictionary<int, int>();
@@ -71,6 +77,7 @@ namespace MafiaBot {
         }
 
         private int? HighestScore(List<MafiaVote> votes) {
+            if (votes.Count == 0) return null;
             var scores = VoteScores(votes);
             var maxScore = scores.Max(x => x.Value);
             var top = scores.Where(x => x.Value == maxScore).ToList();
@@ -246,7 +253,7 @@ namespace MafiaBot {
                             var options = _selectOptions[vote.Voter];
                             
                             if (vote.Vote <= 0 || vote.Vote > _voteOptions.Count) {
-                                await dm.SendMessageAsync($"Please select a valid option (1 - {_voteOptions.Count}).");
+                                await dm.SendMessageAsync($"Please select a valid option (1 - {options.Count}).");
                                 continue;
                             }
 
@@ -292,7 +299,7 @@ namespace MafiaBot {
                     if (CheckGameWin() != WinReason.NoWinYet) break;
 
                     // Day Time
-                    await ChannelVisibility(GetGeneral(), Players, x => !silencerToSilence.Contains(x));
+                    await ChannelVisibility(GetGeneral(), Players, x => !silencerToSilence.Contains(x), true);
                     var newsBuilder = new StringBuilder();
                     if (mafiaToKill == null)
                         newsBuilder.Append("The mafia was asleep and didn't do anything.\n");
@@ -365,7 +372,12 @@ namespace MafiaBot {
             }
             
             Players.Add(new MafiaPlayer(Client, user));
-            await SendGeneral($"<@{user}> joined! There are {Players.Count} players in the lobby.");
+            await _lobbyMessage.ModifyAsync(x => x.Embed = new EmbedBuilder()
+                .WithColor(Color.Red)
+                .WithTitle($"Lobby ({Players.Count})")
+                .WithDescription((Players.Count >= 4 ? "Start with `-start`" : "Cannot Start") + "\n\n" +
+                    string.Join("\n", Players.Select(y => $"**{y.GetUser().Username}**")))
+                .Build());
         }
 
         public async Task VoteFor(MafiaVote vote) {
@@ -380,7 +392,7 @@ namespace MafiaBot {
             }
 
             if (!Players.Exists(x => x.GetId() == vote.Voter)) {
-                await SendGeneral($"<@{vote.Voter}>You aren't a part of this game. Wait until next time.");
+                await SendGeneral($"<@{vote.Voter}> You aren't a part of this game. Wait until next time.");
                 return;
             }
             
@@ -412,7 +424,10 @@ namespace MafiaBot {
             }
             
             _gameStatus = GameStatus.Lobby;
-            await SendGeneral("Created Lobby.");
+            _lobbyMessage = await SendGeneral(new EmbedBuilder()
+                .WithColor(Color.Blue)
+                .WithTitle("Empty Lobby")
+                .Build());
         }
 
         public async Task Start() {
