@@ -360,6 +360,15 @@ namespace MafiaBot {
             _gameThread.Start();
         }
 
+        private async Task RefreshLobby() {
+            await _lobbyMessage.ModifyAsync(x => x.Embed = new EmbedBuilder()
+                .WithColor(Color.Red)
+                .WithTitle($"Lobby ({Players.Count})")
+                .WithDescription((Players.Count >= 4 ? "Start with `-start`" : "Cannot Start") + "\n\n" +
+                                 string.Join("\n", Players.Select(y => $"**{y.GetUser().Username}**")))
+                .Build());
+        }
+
         public async Task JoinGame(ulong user) {
             if (_gameStatus != GameStatus.Lobby) {
                 await SendGeneral("Excited? Please wait until the next game starts.");
@@ -372,12 +381,22 @@ namespace MafiaBot {
             }
             
             Players.Add(new MafiaPlayer(Client, user));
-            await _lobbyMessage.ModifyAsync(x => x.Embed = new EmbedBuilder()
-                .WithColor(Color.Red)
-                .WithTitle($"Lobby ({Players.Count})")
-                .WithDescription((Players.Count >= 4 ? "Start with `-start`" : "Cannot Start") + "\n\n" +
-                    string.Join("\n", Players.Select(y => $"**{y.GetUser().Username}**")))
-                .Build());
+            await RefreshLobby();
+        }
+
+        public async Task LeaveGame(ulong user) {
+            if (_gameStatus != GameStatus.Lobby && _gameStatus != GameStatus.InGame) {
+                await SendGeneral("There isn't any game to leave!");
+                return;
+            }
+
+            if (!Players.Exists(x => x.GetId() == user)) {
+                await SendGeneral("You aren't a part of this game.");
+                return;
+            }
+
+            Players.RemoveAll(x => x.GetId() == user);
+            await RefreshLobby();
         }
 
         public async Task VoteFor(MafiaVote vote) {
@@ -436,8 +455,8 @@ namespace MafiaBot {
                 return;
             }
 
-            if (Players.Count < 3) {
-                await SendGeneral($"You can't play mafia with only {Players.Count} players. You need at least 3!");
+            if (Players.Count < 4) {
+                await SendGeneral($"You can't play mafia with only {Players.Count} players. You need at least 4!");
                 return;
             }
 

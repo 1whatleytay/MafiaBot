@@ -29,6 +29,11 @@ namespace MafiaBot.Commands {
         }
 
         private async Task<bool> EnsureSetup(MafiaContext context) {
+            if (context == null) {
+                await ReplyAsync("Cannot find the game or server you're talking about.");
+                return false;
+            }
+            
             if (!context.IsSetup()) {
                 await ReplyAsync("Woah! I don't think we're set up yet. Set up with `-setup`.");
                 return false;
@@ -66,7 +71,16 @@ namespace MafiaBot.Commands {
             
             await game.JoinGame(Context.Message.Author.Id);
         }
-        
+
+        [Command("leave")]
+        [Summary("Leaves a game or lobby.")]
+        public async Task Leave() {
+            var game = GetOrCreateGame(Context);
+            if (!await EnsureSetup(game)) return;
+
+            await game.LeaveGame(Context.Message.Author.Id);
+        }
+
         [Command("start")]
         [Summary("Starts a game.")]
         public async Task Start() {
