@@ -1,0 +1,30 @@
+Here are some commands you might find helpful.
+```
+Setting Up
+    [setup]
+        Creates the "Mafia" category and creates its channels.
+        You NEED to do this before anything else, or else the bot will yell at you. No one wants that.
+
+Starting a Game
+    [create]
+        Creates a game lobby that people can join. Run this first!
+    [join]
+        After a lobby is created, people can join with this command.
+    [start]
+        Starts the game. Be sure to create a lobby first.
+    [reset]
+        Gets rid of the last lobby or game, zero, nada, zut.
+        You might need to run this before you can create another lobby with [create].
+
+Selecting People
+    [vote] <number>
+        Use this to vote people out.
+        If you're mafia, you'll use this to chose who you want to kill.
+        If you're town, you'll use it to vote people out during the day.
+    [select] <number>
+        The bot will ask you to use this in dms.
+        Select the person you want to perform your action on (heal, investigate, etc).
+```
+Each command should start with a `-`. For example, send `-start` or `-vote 4`.
+
+Good luck!
