@@ -15,9 +15,8 @@ using Context = Discord.Commands.ModuleBase<Discord.Commands.SocketCommandContex
 namespace MafiaBot {
     public class MafiaContext : MafiaPlayers {
         private const int DiscussionTime = 30000;
-        private const long MafiaVoteTime = 60000;
         private const long CitizenVoteTime = 90000;
-        private const long SelectTime = 30000;
+        private const long NightTime = 60000;
         
         private enum GameStatus {
             Lobby,
@@ -53,8 +52,8 @@ namespace MafiaBot {
         private List<MafiaPlayer> _voteOptions;
         private readonly Queue<MafiaVote> _voteQueue = new Queue<MafiaVote>();
 
-        private List<MafiaPlayer> _selectOptions;
-        private MafiaVote? _selection;
+        private Dictionary<ulong, List<MafiaPlayer>> _selectOptions = new Dictionary<ulong, List<MafiaPlayer>>();
+        private readonly Queue<MafiaVote> _selectQueue = new Queue<MafiaVote>();
 
         private Dictionary<int, int> VoteScores(List<MafiaVote> votes) {
             var scores = new Dictionary<int, int>();
@@ -97,50 +96,6 @@ namespace MafiaBot {
             }
             
             return builder.ToString();
-        }
-
-        private async Task<MafiaPlayer> DoMafiaVote() {
-            await SendGeneral("Waiting for Mafia...");
-            _voteOptions = Players.Where(IsNotMafia).ToList();
-            await SendMafia("Who do want to kill? Vote with `-vote <number>`:\n"
-                            + Utils.Code(BuildVoteOptions(_voteOptions)));
-
-            var mafiaCount = Players.Count(IsMafia);
-            var validVotes = new List<MafiaVote>();
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-            while (stopwatch.ElapsedMilliseconds < MafiaVoteTime
-                   && validVotes.Count < mafiaCount) {
-                while (_voteQueue.Count > 0) {
-                    var vote = _voteQueue.Dequeue();
-                        
-                    if (vote.Channel != GetMafia().Id) {
-                        Console.WriteLine("Ignored non-#mafia vote during mafia vote.");
-                        continue;
-                    }
-                    
-                    if (vote.Vote <= 0 || vote.Vote > _voteOptions.Count) {
-                        await SendMafia($"Please select a valid option (1 - {_voteOptions.Count}).");
-                        continue;
-                    }
-
-                    if (validVotes.Exists(x => x.Voter == vote.Voter)) {
-                        validVotes.RemoveAll(x => x.Voter == vote.Voter);
-                    }
-                        
-                    validVotes.Add(vote);
-                    await SendMafia($"<@{vote.Voter}>! Your vote for #{vote.Vote} has been registered.");
-                }
-            }
-            
-            MafiaPlayer selected = null;
-            var top = HighestScore(validVotes);
-            if (top.HasValue)
-                selected = _voteOptions[top.Value - 1];
-
-            _voteOptions = null;
-
-            return selected;
         }
 
         private async Task<MafiaPlayer> DoCitizenVote(List<MafiaPlayer> cannotVote) {
@@ -192,161 +147,148 @@ namespace MafiaBot {
             return selected;
         }
 
-        private async Task<MafiaPlayer> DoDoctorSelect(MafiaPlayer player) {
-            await SendGeneral("Waiting for Doctor.");
-            var doctorInfo = player.GetInfo<DoctorRoleInfo>();
-            _selectOptions = doctorInfo.DidHealLast() ?
-                Players.Where(x => x != player).ToList() : new List<MafiaPlayer>(Players);
-                
-            var dm = await player.GetDM();
-            await dm.SendMessageAsync("Who do you want to save? Select someone with `-select <number>`:\n"
-                                      + Utils.Code(BuildVoteOptions(_selectOptions)));
-
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            while (stopwatch.ElapsedMilliseconds < SelectTime) {
-                if (!_selection.HasValue) continue;
-                    
-                if (_selection.Value.Voter != player.GetId()) {
-                    var wrong = await Players.First(x => x.GetId() == _selection.Value.Voter).GetDM();
-                    await wrong.SendMessageAsync("Wait until its your turn to select something.");
-                } else if (_selection.Value.Vote <= 0 || _selection.Value.Vote > _selectOptions.Count) {
-                    await dm.SendMessageAsync($"Please select a valid option (1 - {_selectOptions.Count}).");
-                } else {
-                    player.GetInfo<DoctorRoleInfo>().Heal(
-                        _selectOptions[_selection.Value.Vote - 1] == player);
-                    break;
-                }
-                    
-                _selection = null;
-            }
-            MafiaPlayer selection = null;
-            if (_selection.HasValue)
-                selection = _selectOptions[_selection.Value.Vote];
-            
-            _selectOptions = null;
-            return selection;
-        }
-
-        private async Task DoInvestigatorSelect(MafiaPlayer player) {
-            await SendGeneral("Waiting for Investigator.");
-            _selectOptions = Players.Where(x => x.GetId() != player.GetId()).ToList();
-                
-            var dm = await player.GetDM();
-            await dm.SendMessageAsync("Who do you want to investigate? Select someone with `-select <number>`:\n"
-                                      + Utils.Code(BuildVoteOptions(_selectOptions)));
-
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            while (stopwatch.ElapsedMilliseconds < SelectTime) {
-                if (!_selection.HasValue) continue;
-                    
-                if (_selection.Value.Voter != player.GetId()) {
-                    var wrong = await Players.First(x => x.GetId() == _selection.Value.Voter).GetDM();
-                    await wrong.SendMessageAsync("Wait until its your turn to select something.");
-                } else if (_selection.Value.Vote <= 0 || _selection.Value.Vote > _selectOptions.Count) {
-                    await dm.SendMessageAsync($"Please select a valid option (1 - {_selectOptions.Count}).");
-                } else {
-                    break;
-                }
-                    
-                _selection = null;
-            }
-            if (_selection.HasValue) {
-                var isGood = IsGood(_selectOptions[_selection.Value.Vote]);
-                await dm.SendMessageAsync("The person you investigated... "
-                                          + (isGood ? "seems normal." : "is suspicious."));
-            }
-            
-            _selectOptions = null;
-        }
-
-        public async Task<MafiaPlayer> DoSilencerSelect(MafiaPlayer player) {
-            await SendGeneral("Waiting for Silencer.");
-            _selectOptions = Players.Where(x => x.GetId() != player.GetId()).ToList();
-                
-            var dm = await player.GetDM();
-            await dm.SendMessageAsync("Who do you want to silence? Select someone with `-select <number>`:\n"
-                                      + Utils.Code(BuildVoteOptions(_selectOptions)));
-
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            while (stopwatch.ElapsedMilliseconds < SelectTime) {
-                if (!_selection.HasValue) continue;
-                    
-                if (_selection.Value.Voter != player.GetId()) {
-                    var wrong = await Players.First(x => x.GetId() == _selection.Value.Voter).GetDM();
-                    await wrong.SendMessageAsync("Wait until its your turn to select something.");
-                } else if (_selection.Value.Vote <= 0 || _selection.Value.Vote > _selectOptions.Count) {
-                    await dm.SendMessageAsync($"Please select a valid option (1 - {_selectOptions.Count}).");
-                } else {
-                    break;
-                }
-                    
-                _selection = null;
-            }
-            MafiaPlayer selection = null;
-            
-            if (_selection.HasValue) {
-                await dm.SendMessageAsync("You silenced "
-                                          + _selectOptions[_selection.Value.Vote].GetUser().Username + ".");
-                selection = _selectOptions[_selection.Value.Vote - 1];
-            } else {
-                await dm.SendMessageAsync("You were too quiet. No one was silenced.");
-            }
-            
-            _selectOptions = null;
-
-            return selection;
-        }
-
         private async Task RunGame() {
             try {
                 while (CheckGameWin() == WinReason.NoWinYet) {
                     // Night Time
                     await ChannelVisibility(GetGeneral(), Players, false, true);
-                    var mafiaToKill = await DoMafiaVote();
-                    await SendGeneral("Mafia is done voting.");
 
-                    // These are separate loops to minimize pattern detection. Won't be an issue when it is async.
+                    MafiaPlayer mafiaToKill = null;
                     var doctorToSave = new List<MafiaPlayer>();
-                    foreach (var player in Players) {
-                        if (player.GetRole() != MafiaPlayer.Role.Doctor) continue;
-
-                        var save = await DoDoctorSelect(player);
-                        if (save != null)
-                            doctorToSave.Add(save);
-                    }
-
-                    foreach (var player in Players) {
-                        if (player.GetRole() != MafiaPlayer.Role.Investigator) continue;
-
-                        await DoInvestigatorSelect(player);
-                    }
-
                     var silencerToSilence = new List<MafiaPlayer>();
-                    foreach (var player in Players) {
-                        if (player.GetRole() != MafiaPlayer.Role.Silencer) continue;
+                    
+                    // Role Setup
+                    _voteOptions = Players.Where(IsNotMafia).ToList();
+                    await SendMafia("Who do want to kill? Vote with `-vote <number>`:\n"
+                                    + Utils.Code(BuildVoteOptions(_voteOptions)));
 
-                        silencerToSilence.Add(await DoSilencerSelect(player));
+                    foreach (var player in Players) {
+                        switch (player.GetRole()) {
+                            case MafiaPlayer.Role.Doctor: {
+                                var doctorInfo = player.GetInfo<DoctorRoleInfo>();
+                                _selectOptions[player.GetId()] = doctorInfo.DidHealLast()
+                                    ? Players.Where(x => x != player).ToList()
+                                    : new List<MafiaPlayer>(Players);
+
+                                var dm = await player.GetDm();
+                                await dm.SendMessageAsync(
+                                    "Who do you want to save? Select someone with `-select <number>`:\n"
+                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()])));
+                                break;
+                            }
+                            case MafiaPlayer.Role.Investigator: {
+                                _selectOptions[player.GetId()] = Players.Where(
+                                    x => x.GetId() != player.GetId()).ToList();
+
+                                var dm = await player.GetDm();
+                                await dm.SendMessageAsync(
+                                    "Who do you want to investigate? Select someone with `-select <number>`:\n"
+                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()])));
+                                break;
+                            }
+                            case MafiaPlayer.Role.Silencer: {
+                                _selectOptions[player.GetId()] = Players.Where(
+                                    x => x.GetId() != player.GetId()).ToList();
+
+                                var dm = await player.GetDm();
+                                await dm.SendMessageAsync(
+                                    "Who do you want to silence? Select someone with `-select <number>`:\n"
+                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()])));
+                                break;
+                            }
+                        }
                     }
+                    
+                    // Wait Through Night Time
+                    var stopwatch = new Stopwatch();
+                    stopwatch.Start();
+                    var validVotes = new List<MafiaVote>();
+                    while (stopwatch.ElapsedMilliseconds < NightTime) {
+                        // -vote
+                        while (_voteQueue.Count > 0) {
+                            var vote = _voteQueue.Dequeue();
+                            
+                            // Verify Vote
+                            if (vote.Channel != GetMafia().Id) {
+                                Console.WriteLine("Ignored non-#mafia vote during mafia vote.");
+                                continue;
+                            }
+                    
+                            if (vote.Vote <= 0 || vote.Vote > _voteOptions.Count) {
+                                await SendMafia($"Please select a valid option (1 - {_voteOptions.Count}).");
+                                continue;
+                            }
+
+                            if (validVotes.Exists(x => x.Voter == vote.Voter)) {
+                                validVotes.RemoveAll(x => x.Voter == vote.Voter);
+                            }
+                            
+                            validVotes.Add(vote);
+                            await SendMafia($"<@{vote.Voter}>! Your vote for #{vote.Vote} has been registered.");
+                        }
+
+                        // -select
+                        while (_selectQueue.Count > 0) {
+                            var vote = _selectQueue.Dequeue();
+
+                            // Verify Selection
+                            var player = Players.First(x => x.GetId() == vote.Voter);
+                            var dm = await player.GetDm();
+                            
+                            if (!_selectOptions.ContainsKey(vote.Voter)) {
+                                await dm.SendMessageAsync("Wait until its your turn!");
+                            }
+                            
+                            var options = _selectOptions[vote.Voter];
+                            
+                            if (vote.Vote <= 0 || vote.Vote > _voteOptions.Count) {
+                                await dm.SendMessageAsync($"Please select a valid option (1 - {_voteOptions.Count}).");
+                                continue;
+                            }
+
+                            var target = options[vote.Vote - 1];
+
+                            // After Selection
+                            switch (player.GetRole()) {
+                                case MafiaPlayer.Role.Doctor:
+                                    doctorToSave.Add(target);
+                                    break;
+                                case MafiaPlayer.Role.Investigator: {
+                                    var isGood = IsGood(target);
+                                    await dm.SendMessageAsync("The person you investigated... "
+                                                              + (isGood ? "seems normal." : "is suspicious."));
+                                    break;
+                                }
+                                case MafiaPlayer.Role.Silencer:
+                                    silencerToSilence.Add(target);
+                                    break;
+                                default:
+                                    await dm.SendMessageAsync("You don't have anything to select from.");
+                                    continue;
+                            }
+                            
+                            _selectOptions.Remove(player.GetId());
+                        }
+                    }
+                    
+                    var top = HighestScore(validVotes);
+                    if (top.HasValue)
+                        mafiaToKill = _voteOptions[top.Value - 1];
+                    _voteOptions = null;
+                    _selectOptions.Clear();
 
                     if (mafiaToKill != null && !doctorToSave.Contains(mafiaToKill))
                         await Kill(mafiaToKill);
-
+                    
                     foreach (var silenced in silencerToSilence) {
-                        var dm = await silenced.GetDM();
+                        var dm = await silenced.GetDm();
                         await dm.SendMessageAsync("You have been silenced! You aren't able to say anything!");
                     }
 
                     if (CheckGameWin() != WinReason.NoWinYet) break;
 
                     // Day Time
-                    await ChannelVisibility(GetGeneral(),
-                        Players.Where(x => !silencerToSilence.Contains(x)).ToList(), true);
+                    await ChannelVisibility(GetGeneral(), Players, x => !silencerToSilence.Contains(x));
                     var newsBuilder = new StringBuilder();
                     if (mafiaToKill == null)
                         newsBuilder.Append("The mafia was asleep and didn't do anything.\n");
@@ -426,7 +368,7 @@ namespace MafiaBot {
             var player = Players.FirstOrDefault(x => x.GetId() == vote.Voter);
             if (player == null) return;
 
-            var dm = await player.GetDM();
+            var dm = await player.GetDm();
             if (_gameStatus != GameStatus.InGame) {
                 await dm.SendMessageAsync("Please wait until a game starts.");
                 return;
@@ -437,7 +379,7 @@ namespace MafiaBot {
                 return;
             }
 
-            _selection = vote;
+            _selectQueue.Enqueue(vote);
         }
 
         public async Task Create() {

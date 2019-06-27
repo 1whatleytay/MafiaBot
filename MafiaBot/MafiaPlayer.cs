@@ -55,7 +55,7 @@ namespace MafiaBot {
         private Role _role = Role.Citizen;
         
         public async Task TellRole() {
-            await (await GetDM()).SendMessageAsync("", false, GetRoleEmbed(_role));
+            await (await GetDm()).SendMessageAsync("", false, GetRoleEmbed(_role));
         }
         
         public void AssignRole(Role role) {
@@ -83,7 +83,7 @@ namespace MafiaBot {
             return _userId;
         }
 
-        public async Task<IMessageChannel> GetDM() {
+        public async Task<IMessageChannel> GetDm() {
             return await GetUser().GetOrCreateDMChannelAsync();
         }
 
