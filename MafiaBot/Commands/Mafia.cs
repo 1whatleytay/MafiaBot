@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
@@ -53,6 +54,7 @@ namespace MafiaBot.Commands {
         public async Task Create() {
             var game = GetOrCreateGame(Context);
             if (!await EnsureSetup(game)) return;
+            
             await game.Create();
         }
         
@@ -61,6 +63,7 @@ namespace MafiaBot.Commands {
         public async Task Join() {
             var game = GetOrCreateGame(Context);
             if (!await EnsureSetup(game)) return;
+            
             await game.JoinGame(Context.Message.Author.Id);
         }
         
@@ -69,6 +72,7 @@ namespace MafiaBot.Commands {
         public async Task Start() {
             var game = GetOrCreateGame(Context);
             if (!await EnsureSetup(game)) return;
+            
             await game.Start();
         }
         
@@ -79,6 +83,31 @@ namespace MafiaBot.Commands {
             if (!await EnsureSetup(game)) return;
 
             await game.Reset();
+            await ReplyAsync("Game has been reset.");
+        }
+
+        [Command("config")]
+        [Summary("Displays the current config.")]
+        public async Task Config() {
+            var game = GetOrCreateGame(Context);
+            if (!await EnsureSetup(game)) return;
+            
+            await ReplyAsync("", false,
+                new EmbedBuilder()
+                    .WithTitle("Current Config")
+                    .WithDescription(game.GetConfig().GetDescription())
+                    .WithColor(Color.Blue)
+                    .Build());
+        }
+
+        [Command("config")]
+        [Summary("Configures the next game to be played.")]
+        public async Task Config([Remainder] string config) {
+            var game = GetOrCreateGame(Context);
+            if (!await EnsureSetup(game)) return;
+            
+            game.SetConfig(config);
+            await Config();
         }
 
         [Command("vote")]

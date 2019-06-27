@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using Discord;
@@ -13,7 +12,7 @@ namespace MafiaBot {
             Mafia,
             Doctor,
             Investigator,
-            Silencer,
+            Silencer
         }
 
         private static Embed GetRoleEmbed(Role role) {
@@ -56,7 +55,7 @@ namespace MafiaBot {
         private Role _role = Role.Citizen;
         
         public async Task TellRole() {
-            await (await GetDM()).SendMessageAsync("", false, GetRoleEmbed(_role));
+            await (await GetDm()).SendMessageAsync("", false, GetRoleEmbed(_role));
         }
         
         public void AssignRole(Role role) {
@@ -84,7 +83,7 @@ namespace MafiaBot {
             return _userId;
         }
 
-        public async Task<IMessageChannel> GetDM() {
+        public async Task<IMessageChannel> GetDm() {
             return await GetUser().GetOrCreateDMChannelAsync();
         }
 
