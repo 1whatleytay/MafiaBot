@@ -297,7 +297,7 @@ namespace MafiaBot {
                     if (mafiaToKill == null)
                         newsBuilder.Append("The mafia was asleep and didn't do anything.\n");
                     else {
-                        newsBuilder.Append($"<@{mafiaToKill.GetId()}> " + RandomizeMessage(type:MessageType.Death)+ ".\n");
+                        newsBuilder.Append(RandomizeMessage(MessageType.Death,mafiaToKill.GetId()) + "\n");
                         if (doctorToSave.Contains(mafiaToKill))
                             newsBuilder.Append($"<@{mafiaToKill.GetId()}> was saved by a doctor!\n");
                     }
@@ -327,13 +327,13 @@ namespace MafiaBot {
         {
             Death = 0
         }
-        private static string RandomizeMessage(MessageType type)
+        private static string RandomizeMessage(MessageType type, ulong name)
         {
             var r = new Random();
             switch (type)
             {
                 case MessageType.Death:
-                    var message = DeathMessages[r.Next(DeathMessages.Length)];
+                    var message = String.Format(DeathMessages[r.Next(DeathMessages.Length)], $"@<{name}>");
                     return message;
                 default:
                     return "Invalid Message Type";
