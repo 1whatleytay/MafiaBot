@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 using Discord.WebSocket;
 
+using MafiaBot.Roles;
+
 using Context = Discord.Commands.ModuleBase<Discord.Commands.SocketCommandContext>;
 
 namespace MafiaBot {
@@ -15,7 +17,7 @@ namespace MafiaBot {
         private const int DiscussionTime = 30000;
         private const long MafiaVoteTime = 60000;
         private const long CitizenVoteTime = 90000;
-        private const long SelectTime = 40000;
+        private const long SelectTime = 30000;
         
         private enum GameStatus {
             Lobby,
@@ -183,10 +185,47 @@ namespace MafiaBot {
 
         private async Task<MafiaPlayer> DoDoctorSelect(MafiaPlayer player) {
             await SendGeneral("Waiting for Doctor.");
-            _selectOptions = Players.Where(x => x.GetId() != player.GetId()).ToList();
+            var doctorInfo = player.GetInfo<DoctorRoleInfo>();
+            _selectOptions = doctorInfo.DidHealLast() ?
+                Players.Where(x => x != player).ToList() : new List<MafiaPlayer>(Players);
                 
             var dm = await player.GetDM();
             await dm.SendMessageAsync("Who do you want to save? Select someone with `-select <number>`:\n"
+                                      + Utils.Code(BuildVoteOptions(_selectOptions)));
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            while (stopwatch.ElapsedMilliseconds < SelectTime) {
+                if (!_selection.HasValue) continue;
+                    
+                if (_selection.Value.Voter != player.GetId()) {
+                    var wrong = await Players.First(x => x.GetId() == _selection.Value.Voter).GetDM();
+                    await wrong.SendMessageAsync("Wait until its your turn to select something.");
+                } else if (_selection.Value.Vote <= 0 || _selection.Value.Vote > _selectOptions.Count) {
+                    await dm.SendMessageAsync($"Please select a valid option (1 - {_selectOptions.Count}).");
+                } else {
+                    player.GetInfo<DoctorRoleInfo>().Heal(
+                        _selectOptions[_selection.Value.Vote - 1] == player);
+                    break;
+                }
+                    
+                _selection = null;
+            }
+            MafiaPlayer selection = null;
+            if (_selection.HasValue)
+                selection = _selectOptions[_selection.Value.Vote];
+            
+            _selectOptions = null;
+            return selection;
+        }
+
+        private async Task DoInvestigatorSelect(MafiaPlayer player) {
+            await SendGeneral("Waiting for Investigator.");
+            _selectOptions = Players.Where(x => x.GetId() != player.GetId()).ToList();
+                
+            var dm = await player.GetDM();
+            await dm.SendMessageAsync("Who do you want to investigate? Select someone with `-select <number>`:\n"
                                       + Utils.Code(BuildVoteOptions(_selectOptions)));
 
             var stopwatch = new Stopwatch();
@@ -206,12 +245,15 @@ namespace MafiaBot {
                     
                 _selection = null;
             }
-            MafiaPlayer selection = null;
-            if (_selection.HasValue)
-                selection = _selectOptions[_selection.Value.Vote];
+            if (_selection.HasValue) {
+                var isGood = IsGood(_selectOptions[_selection.Value.Vote]);
+                await dm.SendMessageAsync("The person you investigated... "
+                                          + (isGood ? "seems normal." : "is suspicious."));
+            } else {
+                await dm.SendMessageAsync("You didn't investigate anyone. What a shame.");
+            }
             
             _selectOptions = null;
-            return selection;
         }
 
         private async Task RunGame() {
@@ -222,6 +264,7 @@ namespace MafiaBot {
                     var mafiaToKill = await DoMafiaVote();
                     await SendGeneral("Mafia is done voting.");
 
+                    // These are separate loops to minimize pattern detection. Won't be an issue when it is async.
                     var doctorToSave = new List<MafiaPlayer>();
                     foreach (var player in Players) {
                         if (player.GetRole() != MafiaPlayer.Role.Doctor) continue;
@@ -229,6 +272,12 @@ namespace MafiaBot {
                         var save = await DoDoctorSelect(player);
                         if (save != null)
                             doctorToSave.Add(save);
+                    }
+
+                    foreach (var player in Players) {
+                        if (player.GetRole() != MafiaPlayer.Role.Investigator) continue;
+
+                        await DoInvestigatorSelect(player);
                     }
 
                     if (mafiaToKill != null && !doctorToSave.Contains(mafiaToKill))
@@ -270,6 +319,9 @@ namespace MafiaBot {
             
             await AssignRoles();
             await ChannelVisibility(GetMafia(), Players, x => x.GetRole() == MafiaPlayer.Role.Mafia);
+            var mafiaNames = string.Join(" ",
+                Players.Where(x => x.GetRole() == MafiaPlayer.Role.Mafia).Select(x => $"<@{x.GetId()}>"));
+            await SendMafia($"**Welcome to the Mafia!** Your members are {mafiaNames}. Say hi.");
 
             _gameThread = new Thread(() => { RunGame().GetAwaiter().GetResult(); });
             _gameThread.Start();

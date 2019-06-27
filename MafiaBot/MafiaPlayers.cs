@@ -30,8 +30,8 @@ namespace MafiaBot {
 
         protected async Task AssignRoles() {
             var mafiaCount = Math.Ceiling(Players.Count * MafiaPercentage);
-            var doctorCount = 1;
-//            var investigatorCount = Math.Ceiling(Players.Count * InvestigatorPercentage);
+            var doctorCount = Math.Floor(Players.Count * DoctorPercentage);
+            var investigatorCount = Math.Ceiling(Players.Count * InvestigatorPercentage);
             
             var pool = new List<MafiaPlayer>(Players);
 
@@ -47,11 +47,11 @@ namespace MafiaBot {
                 pool.Remove(player);
             }
             
-//            for (var a = 0; a < investigatorCount; a++) {
-//                var player = pool[Utils.Random.Next(pool.Count)];
-//                player.AssignRole(MafiaPlayer.Role.Investigator);
-//                pool.Remove(player);
-//            }
+            for (var a = 0; a < investigatorCount; a++) {
+                var player = pool[Utils.Random.Next(pool.Count)];
+                player.AssignRole(MafiaPlayer.Role.Investigator);
+                pool.Remove(player);
+            }
 
             foreach (var player in Players) {
                 await player.TellRole();
