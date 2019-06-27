@@ -297,7 +297,7 @@ namespace MafiaBot {
                     if (mafiaToKill == null)
                         newsBuilder.Append("The mafia was asleep and didn't do anything.\n");
                     else {
-                        newsBuilder.Append($"<@{mafiaToKill.GetId()}> " + RandomizeMessage(type:MessageType.Death)+ "\n");
+                        newsBuilder.Append($"<@{mafiaToKill.GetId()}> " + RandomizeMessage(type:MessageType.Death)+ ".\n");
                         if (doctorToSave.Contains(mafiaToKill))
                             newsBuilder.Append($"<@{mafiaToKill.GetId()}> was saved by a doctor!\n");
                     }
@@ -327,7 +327,6 @@ namespace MafiaBot {
         {
             Death = 0
         }
-
         private static string RandomizeMessage(MessageType type)
         {
             var r = new Random();
@@ -341,7 +340,6 @@ namespace MafiaBot {
             }
         }
         
-
         private async Task InitializeGame() {
             await SendGeneral("Game is starting!");
             
