@@ -7,13 +7,9 @@ using Discord.WebSocket;
 
 namespace MafiaBot {
     public class MafiaPlayers : MafiaChannels {
-        private const double MafiaPercentage = 1.0 / 6.0; // Rounded up
-        private const double DoctorPercentage = 1.0 / 5.0; // Rounded down
-        private const double InvestigatorPercentage = 1.0 / 7.0; // Rounded up
-        private const double SilencerPercentage = 1.0 / 7.0;
-        
         protected readonly List<MafiaPlayer> Players = new List<MafiaPlayer>();
         protected readonly List<MafiaPlayer> Killed = new List<MafiaPlayer>();
+        private MafiaConfig _config = new MafiaConfig();
 
         private static readonly MafiaPlayer.Role[] GoodRoles = {
             MafiaPlayer.Role.Citizen,
@@ -61,10 +57,10 @@ namespace MafiaBot {
         }
 
         protected async Task AssignRoles() {
-            var mafiaCount = (int)Math.Ceiling(Players.Count * MafiaPercentage);
-            var doctorCount = (int)Math.Floor(Players.Count * DoctorPercentage);
-            var investigatorCount = (int)Math.Floor(Players.Count * InvestigatorPercentage);
-            var silencerCount = (int)Math.Ceiling(Players.Count * SilencerPercentage);
+            var mafiaCount = _config.Mafia.GetCount(Players.Count);
+            var doctorCount = _config.Doctor.GetCount(Players.Count);
+            var investigatorCount = _config.Investigator.GetCount(Players.Count);
+            var silencerCount = _config.Silencer.GetCount(Players.Count);
             
             var pool = new List<MafiaPlayer>(Players);
 
@@ -80,6 +76,14 @@ namespace MafiaBot {
 
         public bool HasPlayer(ulong player) {
             return Players.Exists(x => x.GetId() == player);
+        }
+
+        public void SetConfig(string config) {
+            _config = new MafiaConfig(config);
+        }
+
+        public MafiaConfig GetConfig() {
+            return _config;
         }
 
         protected MafiaPlayers(DiscordSocketClient client, ulong guildId) : base(client, guildId) { }
