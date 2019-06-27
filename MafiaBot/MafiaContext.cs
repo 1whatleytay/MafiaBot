@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 using Discord.WebSocket;
 
@@ -61,14 +61,22 @@ namespace MafiaBot {
         private List<MafiaPlayer> _selectOptions;
         private MafiaVote? _selection;
 
-        private Dictionary<ulong, int> VoteScores(List<MafiaVote> votes) {
-            var scores = new Dictionary<ulong, int>();
+        private Dictionary<int, int> VoteScores(List<MafiaVote> votes) {
+            var scores = new Dictionary<int, int>();
             
             foreach (var vote in votes) {
-                scores[vote.Voter]++;
+                scores[vote.Vote]++;
             }
 
             return scores;
+        }
+
+        private int? HighestScore(List<MafiaVote> votes) {
+            var scores = VoteScores(votes);
+            var maxScore = scores.Max(x => x.Value);
+            var top = scores.Where(x => x.Value == maxScore).ToList();
+            if (top.Count == 1) return top[0].Key;
+            return null;
         }
         
         private WinReason CheckGameWin() {
@@ -127,12 +135,11 @@ namespace MafiaBot {
                     await SendMafia($"<@{vote.Voter}>! Your vote for #{vote.Vote} has been registered.");
                 }
             }
-            MafiaPlayer selected;
-            if (validVotes.Count < 1)
-                selected = null;
-            else {
-                selected = _voteOptions[validVotes[Utils.Random.Next(validVotes.Count)].Vote - 1];
-            }
+            
+            MafiaPlayer selected = null;
+            var top = HighestScore(validVotes);
+            if (top.HasValue)
+                selected = _voteOptions[top.Value - 1];
 
             _voteOptions = null;
 
@@ -172,12 +179,11 @@ namespace MafiaBot {
                 }
             }
             
-            MafiaPlayer selected;
-            if (validVotes.Count < 1)
-                selected = null;
-            else
-                selected = _voteOptions[validVotes[Utils.Random.Next(validVotes.Count)].Vote - 1];
-            
+            MafiaPlayer selected = null;
+            var top = HighestScore(validVotes);
+            if (top.HasValue)
+                selected = _voteOptions[top.Value - 1];
+
             _voteOptions = null;
 
             return selected;
