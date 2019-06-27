@@ -265,6 +265,36 @@ namespace MafiaBot {
             }
         }
 
+        // Enumeration to make RandomizeMessage work with many types of messages
+        private enum MessageType
+        {
+            Death = 0
+        }
+        
+        // TODO - Fill in death messages
+        private static string[] _deathMessages;
+        
+        private static string RandomizeMessage(MessageType type, string name)
+        {
+            string[] test = { ""};
+            _deathMessages = test;
+        
+            if (_deathMessages == null)
+            {
+                return "Death messages not initialized";
+            }
+
+            var r = new Random();
+            switch (type)
+            {
+                case MessageType.Death:
+                    var message = _deathMessages[r.Next(_deathMessages.Length)];
+                    return name + message;
+                default: return "Invalid Message Type";
+            }
+        }
+        
+
         private async Task InitializeGame() {
             await SendGeneral("Game is starting!");
             
