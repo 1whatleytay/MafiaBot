@@ -114,10 +114,18 @@ namespace MafiaBot {
             return await GetGeneral().SendMessageAsync(text);
         }
 
+        protected async Task<RestUserMessage> SendGeneral(Embed embed) {
+            return await GetGeneral().SendMessageAsync("", false, embed);
+        }
+
         protected async Task<RestUserMessage> SendMafia(string text) {
             return await GetMafia().SendMessageAsync(text);
         }
 
+        protected async Task<RestUserMessage> SendMafia(Embed embed) {
+            return await GetMafia().SendMessageAsync("", false, embed);
+        }
+        
         protected MafiaChannels(DiscordSocketClient client, ulong guildId) {
             Client = client;
             _guildId = guildId;
