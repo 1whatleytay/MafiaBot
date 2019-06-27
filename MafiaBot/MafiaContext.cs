@@ -73,6 +73,7 @@ namespace MafiaBot {
         }
 
         private int? HighestScore(List<MafiaVote> votes) {
+            if (votes.Count == 0) return null;
             var scores = VoteScores(votes);
             var maxScore = scores.Max(x => x.Value);
             var top = scores.Where(x => x.Value == maxScore).ToList();
@@ -369,7 +370,7 @@ namespace MafiaBot {
             }
 
             if (!Players.Exists(x => x.GetId() == vote.Voter)) {
-                await SendGeneral($"<@{vote.Voter}>You aren't a part of this game. Wait until next time.");
+                await SendGeneral($"<@{vote.Voter}> You aren't a part of this game. Wait until next time.");
                 return;
             }
             
