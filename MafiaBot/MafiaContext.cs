@@ -5,7 +5,7 @@ using System.Threading;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-
+using System.IO;
 using Discord.WebSocket;
 
 using MafiaBot.Roles;
@@ -18,6 +18,7 @@ namespace MafiaBot {
         private const long MafiaVoteTime = 60000;
         private const long CitizenVoteTime = 90000;
         private const long SelectTime = 30000;
+        private static readonly string[] DeathMessages = File.ReadAllLines(path: "Lines/messages.txt");
         
         private enum GameStatus {
             Lobby,
@@ -343,7 +344,7 @@ namespace MafiaBot {
                     if (mafiaToKill == null)
                         newsBuilder.Append("The mafia was asleep and didn't do anything.\n");
                     else {
-                        newsBuilder.Append($"<@{mafiaToKill.GetId()}> was attacked by the mafia last night.\n");
+                        newsBuilder.Append($"<@{mafiaToKill.GetId()}> " + RandomizeMessage(type:MessageType.Death)+ "\n");
                         if (doctorToSave.Contains(mafiaToKill))
                             newsBuilder.Append($"<@{mafiaToKill.GetId()}> was saved by a doctor!\n");
                     }
@@ -372,27 +373,17 @@ namespace MafiaBot {
         {
             Death = 0
         }
-        
-        // TODO - Fill in death messages
-        private static string[] _deathMessages;
-        
-        private static string RandomizeMessage(MessageType type, string name)
-        {
-            string[] test = { ""};
-            _deathMessages = test;
-        
-            if (_deathMessages == null)
-            {
-                return "Death messages not initialized";
-            }
 
+        private static string RandomizeMessage(MessageType type)
+        {
             var r = new Random();
             switch (type)
             {
                 case MessageType.Death:
-                    var message = _deathMessages[r.Next(_deathMessages.Length)];
-                    return name + message;
-                default: return "Invalid Message Type";
+                    var message = DeathMessages[r.Next(DeathMessages.Length)];
+                    return message;
+                default:
+                    return "Invalid Message Type";
             }
         }
         
