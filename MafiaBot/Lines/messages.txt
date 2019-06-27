@@ -1,0 +1,6 @@
+{0} was mauled by a cat.
+{0} was crushed by a boulder.
+{0} forgot to wear their seatbelt.
+{0} fell off of a 8 story building.
+{0} was abducted by aliens.
+Breaking News! {0} fell out of an airplane!

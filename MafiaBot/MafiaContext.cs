@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -18,7 +19,10 @@ namespace MafiaBot {
     public class MafiaContext : MafiaPlayers {
         private const int DiscussionTime = 30000;
         private const long CitizenVoteTime = 90000;
+        private static readonly string[] DeathMessages = File.ReadAllLines(path: "Lines/messages.txt");
+        private const long SelectTime = 30000;
         private const long NightTime = 60000;
+        
         
         private enum GameStatus {
             Lobby,
@@ -300,7 +304,7 @@ namespace MafiaBot {
                     if (mafiaToKill == null)
                         newsBuilder.Append("The mafia was asleep and didn't do anything.\n");
                     else {
-                        newsBuilder.Append($"<@{mafiaToKill.GetId()}> was attacked by the mafia last night.\n");
+                        newsBuilder.Append(RandomizeMessage(MessageType.Death,mafiaToKill.GetId()) + "\n");
                         if (doctorToSave.Contains(mafiaToKill))
                             newsBuilder.Append($"<@{mafiaToKill.GetId()}> was saved by a doctor!\n");
                     }
@@ -325,6 +329,24 @@ namespace MafiaBot {
             }
         }
 
+        // Enumeration to make RandomizeMessage work with many types of messages
+        private enum MessageType
+        {
+            Death = 0
+        }
+        private static string RandomizeMessage(MessageType type, ulong name)
+        {
+            var r = new Random();
+            switch (type)
+            {
+                case MessageType.Death:
+                    var message = String.Format(DeathMessages[r.Next(DeathMessages.Length)], $"@<{name}>");
+                    return message;
+                default:
+                    return "Invalid Message Type";
+            }
+        }
+        
         private async Task InitializeGame() {
             await SendGeneral("Game is starting!");
             
