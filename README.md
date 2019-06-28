@@ -1,9 +1,24 @@
-#Mafioso - A Mafia Bot for Discord
+# Mafioso - A Mafia Bot for Discord
+
+## Table of Contents
+1. [What is it?](#what-is-it)
+2. [Why make it?](#why-make-it)
+3. [Key Features](#key-features)
+4. [Rules](#rules)
+    - [Getting Started](#getting-started)
+    - [Creating, Joining and Starting a Game](#creating-joining-and-starting-a-game)
+    - [Roles](#roles)
+    - [Night Time](#night-time)
+    - [Day Time](#day-time)
+    - [Last Stand](#last-stand)
+    - [Dying](#dying)
+5. [Who are we?](#who-are-we)
+
 ## What is it?
 Mafioso is a [Discord](https://discord.gg) bot made for [Discord Hack Week](https://discordapp.com/invite/hackweek).
 
 The bot plays Mafia, a multiplayer game of expectations and betrayal, which can be really fun.
-If you've never played mafia before, I suggest you give it a try, bot or not.
+If you've never played Mafia before, I suggest you give it a try, bot or not.
 The real life rules can be found [here](https://icebreakerideas.com/mafia-game/).
 
 However, this bot aims to address some of the pitfalls my friends and I have found while playing Mafia.
@@ -14,16 +29,16 @@ Looking to [playtest](https://discord.gg/zfZjw4R)?
 Looking to [add it to your server](https://discordapp.com/oauth2/authorize?client_id=592865254086541322&scope=bot&permissions=474033168)?
 
 ## Why make it?
-We all love mafia, but there are some issues we found that we thought we could tackle by making a Discord bot.
+We all love Mafia, but there are some issues we found that we thought we could tackle by making a Discord bot.
 Let's address some pitfalls we encounter while playing regular Mafia:
  - One person always has to serve as moderator.
-   - You can't properly play when you don't have many people, since one person will always have to play moderator
+   - You can't properly play when you don't have many people, since one person will always have to play moderator.
    - One person always has to sit out whether they like it or not, to assign roles and keep the game going. That's no fun!
  - People can often hold up games by forgetting or not speaking.
- - Moderators frequently have to speak to each person 1 by 1 during each night, which can make large games very slooow.
+ - Moderators frequently have to speak to each person 1 by 1 during each night, which can make large games very slow.
 
-As Mafia connoisseurs, we have also played on Discord. We also found so special issues with playing Mafia over voice call.
- - To give the mafia a chance to send their role to the moderator, everyone has to mute!
+As Mafia connoisseurs, we have also played on Discord. We also found some special issues with playing Mafia over voice call.
+ - To give the Mafia a chance to send their role to the moderator, everyone has to mute!
    - Not just one person, because then it would blow their cover.
    - This almost never happens! And when it does, it takes a good minute and a half.
 
@@ -31,14 +46,14 @@ tl;dr Regular Mafia is a flawed game and the power of technology is the solution
 
 ## Key Features
 Here are some key features the bot offers to solve these problems:
- - The complete Mafia experience
-    - Day, night, voting out, last stand, everything we could think of
- - Fully capable moderation of several different games at once
- - 5 Unique Roles
- - Voice channel support, for silencing and muting members (surprisingly handy)
- - Randomized stories
-    - For that extra bit of moderation punch
- - Art that pops out at you like a tasty sandwich
+ - The complete Mafia experience.
+    - Day, night, voting out, last stand, everything we could think of.
+ - Fully capable moderation of several different games at once.
+ - 5 Unique Roles.
+ - Voice channel support, for silencing and muting members (surprisingly handy).
+ - Randomized stories.
+    - For that extra bit of moderation punch.
+ - Art that pops out at you like a tasty sandwich.
 
 tl;dr Strong bot indeed.
 
@@ -48,12 +63,12 @@ We tried to make the bot as easy and intuitive as possible to use, but in case y
 ### Getting Started
 Say you've just [invited the bot](https://discordapp.com/oauth2/authorize?client_id=592865254086541322&scope=bot&permissions=474033168) to your server.
 The first thing you need to do is run the `-setup` command.
-This will create a Mafia category, with #general #mafia chats along with a voice chat.
+This will create a Mafia category, with `#general` and `#mafia` chats along with a voice chat.
 The bot does not automatically set up in order to not surprise you with freaky Mafia channels right off the bat.
 
-If you're an administrator, you will have access to the #mafia channel no matter what.
+If you're an administrator, you will have access to the `#mafia` channel no matter what.
 Play fair and mute that channel ASAP.
-Don't worry, if you're mafia the bot will ping you first.
+Don't worry, if you're part of the Mafia the bot will ping you first.
 
 ### Creating, Joining and Starting a Game
 After setting up, you can create a new game lobby with `-create`.
@@ -67,6 +82,7 @@ If you're confused why you've been muted, check out the "Night Time" section.
 
 #### Citizen
 ![Citizen Role](MafiaBot/Images/citizen.png)
+
 **Objective**: Vote out all the Mafia.
 
 **Strength**: Sheer number.
@@ -82,7 +98,8 @@ For more on voting, see the "Day Time" section.
 
 #### Mafia
 ![Citizen Role](MafiaBot/Images/mafia.png)
-**Objective**: Have Mafia become majority of game (>50% of players are mafia).
+
+**Objective**: Have Mafia become majority of game (>50% of players are Mafia).
 
 **Strength**: Able to attack 1 Non-Mafia each night.
 
@@ -90,7 +107,7 @@ For more on voting, see the "Day Time" section.
 
 The Mafia wants to take over the town.
 How? Killing during the night and deceiving during the day.
-Each night, you and your fellow Mafia (if you are not the only mafia) vote with `-vote` in the #mafia channel.
+Each night, you and your fellow Mafia (if you are not the only Mafia) vote with `-vote` in the `#mafia` channel.
 **Only** the person with the majority of votes will be found dead the next morning (spooky).
 
 You can also lie and deceive during the morning to convince the town to vote innocent individuals out.
@@ -98,6 +115,7 @@ However, watch out. The Detective is constantly looking for you, and the Doctor 
 Choose wisely.
 
 #### Doctor
+
 **Objective**: Vote out all the Mafia.
 
 **Strength**: Able to pick 1 person to save each night.
@@ -116,6 +134,7 @@ The Mafia is hunting you down, and if you aren't careful- you might not live muc
 
 #### Detective
 ![Citizen Role](MafiaBot/Images/detective.png)
+
 **Objective**: Vote out all the Mafia.
 
 **Strength**: Able to pick 1 person to investigate each night.
@@ -139,6 +158,7 @@ Beware, as the Mafia is trying to hunt you down.
 Only reveal your role when it is of the essence.
 
 #### Silencer
+
 **Objective**: Stay alive until the end of the game.
 
 **Strength**: Able to pick1 person to completely silence each night.
@@ -156,6 +176,7 @@ However, if a detective investigates you- you will look suspicious.
 I'm sure the town will understand if you explain that you're working for them... but will you really?
 
 #### Hunter
+
 Not much is known about the hunter.
 He appears in large games.
 He attacks everyone he sees.
@@ -165,11 +186,11 @@ He has not be implemented yet give me a minute :P
 ### Night Time
 Night Time lasts approximately 60 seconds. In this time, everyone frantically tells the bot who they will target.
 
-Most non-mafia roles will be DMed a list of names they can target.
+Most Non-Mafia roles will be DMed a list of names they can target.
 They will have to DM back `-select <number>` where \<number\> is the number of the individual they want to target.
 They can only do this once.
 
-The mafia are sent a similar list in their #mafia channel.
+The Mafia are sent a similar list in their `#mafia` channel.
 They need vote for the individual they are going to kill with the `-vote <number>` command.
 \<number\> is the number of the individual they want to target.
 If there is a majority vote, that person will be selected to be attacked.
@@ -181,7 +202,7 @@ If everyone has finished voting and selecting, the night will end immediately an
 During day time, there will be a short 30 second discussion period where everyone can share their information.
 
 Then a vote will be called.
-The bot will DM a list in #general and you can vote by typing `-vote <number>` where number is the number of the individual you want to target.
+The bot will DM a list in `#general` and you can vote by typing `-vote <number>` where number is the number of the individual you want to target.
 If there is a majority vote, the individual will be put on "Last Stand."
 If there is not, it will go straight to night time.
 
@@ -197,8 +218,8 @@ If most people vote guilty, they will be killed.
 After the Last Stand, the game will go straight to "Night Time."
 
 ### Dying
-If you are dead, you will have access to the #dead chat.
-You will not be able to speak in #general or #mafia.
+If you are dead, you will have access to the `#dead` chat.
+You will not be able to speak in `#general` or `#mafia`.
 You will not be able to speak in voice chat.
 You will also have a shiny role.
 
