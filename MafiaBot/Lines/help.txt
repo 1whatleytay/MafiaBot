@@ -1,30 +1,31 @@
+
 Here are some commands you might find helpful.
-```
-Setting Up
-    [setup]
-        Creates the "Mafia" category and creates its channels.
-        You NEED to do this before anything else, or else the bot will yell at you. No one wants that.
 
-Starting a Game
-    [create]
-        Creates a game lobby that people can join. Run this first!
-    [join]
-        After a lobby is created, people can join with this command.
-    [start]
-        Starts the game. Be sure to create a lobby first.
-    [reset]
-        Gets rid of the last lobby or game, zero, nada, zut.
-        You might need to run this before you can create another lobby with [create].
+For rules, please go to https://github.com/1whatleytay/MafiaBot/blob/master/README.md
 
-Selecting People
-    [vote] <number>
-        Use this to vote people out.
-        If you're mafia, you'll use this to chose who you want to kill.
-        If you're town, you'll use it to vote people out during the day.
-    [select] <number>
-        The bot will ask you to use this in dms.
-        Select the person you want to perform your action on (heal, investigate, etc).
-```
-Each command should start with a `-`. For example, send `-start` or `-vote 4`.
+**Setting Up** (You MUST do this first): Creates the mafia category and functions
+Use the **[setup]** command like this: -setup
 
+**Game Management**
+
+    **Creating a game**: Creates a lobby (4 players are needed to play)
+    Use the **[create]** command like this: -create 
+    
+   **Joining a game**: After creating a game, players can join
+    Use the **[join]** command like this: -join
+    
+    **Starting a game**: When there are 4 or more users, the game can be started
+    Use the **[start]** command like this: -start
+    
+    **Resetting a game**: Can be used to reset a game in progress
+    Use the **[reset]** command like this: -reset
+
+**In Game Actions**
+
+    **Selecting people**: If you're mafia, you'll use this to chose who you want to kill. If you're a citizen, you'll use it to vote people out during the day.
+    Use the **[vote <number>]** command like this: -vote 2 to vote to remove option 2
+    
+     **Voting people out**:  The bot will ask you to use this in dms. Select the person you want to perform your action on (heal, investigate, etc).
+        Use the **[select <number>]** command like this: -select 2 to select option 2
+        
 Good luck!
