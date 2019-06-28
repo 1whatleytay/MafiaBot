@@ -9,7 +9,8 @@ namespace MafiaBot {
     public class MafiaPlayers : MafiaChannels {
         public enum DeathReason {
             MafiaAttack,
-            VotedOut
+            VotedOut,
+            HunterAttacked
         }
         
         protected readonly List<MafiaPlayer> Players = new List<MafiaPlayer>();
@@ -22,6 +23,8 @@ namespace MafiaBot {
                     return "You got attacked by the Mafia.";
                 case DeathReason.VotedOut:
                     return "You got voted out by the town.";
+                case DeathReason.HunterAttacked:
+                    return "You got stalked and hunted by the Hunter.";
             }
             return "You somehow died.";
         }
@@ -37,7 +40,8 @@ namespace MafiaBot {
         };
 
         private static readonly MafiaPlayer.Role[] NeutralRoles = {
-            MafiaPlayer.Role.Silencer
+            MafiaPlayer.Role.Silencer,
+            MafiaPlayer.Role.Hunter
         };
 
         protected static bool IsGood(MafiaPlayer player) {
@@ -76,7 +80,7 @@ namespace MafiaBot {
         }
 
         private void AssignPool(List<MafiaPlayer> pool, int count, MafiaPlayer.Role role) {
-            for (var a = 0; a < count; a++) {
+            for (var a = 0; a < count && pool.Any(); a++) {
                 var player = pool[Utils.Random.Next(pool.Count)];
                 player.AssignRole(role);
                 pool.Remove(player);
@@ -88,6 +92,7 @@ namespace MafiaBot {
             var doctorCount = _config.Doctor.GetCount(Players.Count);
             var detectiveCount = _config.Detective.GetCount(Players.Count);
             var silencerCount = _config.Silencer.GetCount(Players.Count);
+            var hunterCount = _config.Hunter.GetCount(Players.Count);
             
             var pool = new List<MafiaPlayer>(Players);
 
@@ -95,6 +100,7 @@ namespace MafiaBot {
             AssignPool(pool, doctorCount, MafiaPlayer.Role.Doctor);
             AssignPool(pool, detectiveCount, MafiaPlayer.Role.Detective);
             AssignPool(pool, silencerCount, MafiaPlayer.Role.Silencer);
+            AssignPool(pool, hunterCount, MafiaPlayer.Role.Hunter);
             
             foreach (var player in Players) {
                 await player.TellRole();

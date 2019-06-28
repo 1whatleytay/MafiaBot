@@ -13,20 +13,22 @@ namespace MafiaBot {
         private static readonly string DoctorDescription = File.ReadAllText("Lines/Roles/doctor.txt");
         private static readonly string DetectiveDescription = File.ReadAllText("Lines/Roles/detective.txt");
         private static readonly string SilencerDescription = File.ReadAllText("Lines/Roles/silencer.txt");
+        private static readonly string HunterDescription = File.ReadAllText("Lines/Roles/hunter.txt");
         
         public enum Role {
             Citizen,
             Mafia,
             Doctor,
             Detective,
-            Silencer
+            Silencer,
+            Hunter
         }
 
         private static Embed GetRoleEmbed(Role role) {
             switch (role) {
                 case Role.Citizen:
                     return new EmbedBuilder()
-                        .WithColor(Color.Green)
+                        .WithColor(Color.LightGrey)
                         .WithTitle("You are a Citizen!")
                         .WithDescription(CitizenDescription)
                         .WithImageUrl(
@@ -42,13 +44,13 @@ namespace MafiaBot {
                         .Build();
                 case Role.Doctor:
                     return new EmbedBuilder()
-                        .WithColor(Color.Blue)
+                        .WithColor(Color.Green)
                         .WithTitle("You are the Doctor!")
                         .WithDescription(DoctorDescription)
                         .Build();
                 case Role.Detective:
                     return new EmbedBuilder()
-                        .WithColor(Color.Orange)
+                        .WithColor(Color.Blue)
                         .WithTitle("You are the Detective!")
                         .WithDescription(DetectiveDescription)
                         .WithImageUrl(
@@ -59,6 +61,12 @@ namespace MafiaBot {
                         .WithColor(Color.DarkPurple)
                         .WithTitle("You are the Silencer!")
                         .WithDescription(SilencerDescription)
+                        .Build();
+                case Role.Hunter:
+                    return new EmbedBuilder()
+                        .WithColor(Color.Teal)
+                        .WithTitle("You are the Hunter!")
+                        .WithDescription(HunterDescription)
                         .Build();
                 default:
                     return new EmbedBuilder()
@@ -82,6 +90,9 @@ namespace MafiaBot {
             switch (role) {
                 case Role.Doctor:
                     _roleInfo = new DoctorRoleInfo();
+                    break;
+                case Role.Hunter:
+                    _roleInfo = new HunterRoleInfo();
                     break;
                 default:
                     _roleInfo = null;

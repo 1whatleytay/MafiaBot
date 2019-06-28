@@ -172,6 +172,7 @@ namespace MafiaBot {
                     await VoiceMute(Players, false);
 
                     MafiaPlayer mafiaToKill = null;
+                    var hunterToKill = new List<MafiaPlayer>();
                     var doctorToSave = new List<MafiaPlayer>();
                     var silencerToSilence = new List<MafiaPlayer>();
                     
@@ -215,9 +216,35 @@ namespace MafiaBot {
                                     + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()], GetGuild())));
                                 break;
                             }
+                            case MafiaPlayer.Role.Hunter: {
+                                var dm = await player.GetDm();
+                                
+                                var info = player.GetInfo<HunterRoleInfo>();
+                                if (info.IsStalking()) {
+                                    var killId = info.Kill();
+                                    if (killId.HasValue) {
+                                        var stalkee = Players.FirstOrDefault(x => x.GetId() == killId.Value);
+                                        if (stalkee != null) {
+                                            hunterToKill.Add(stalkee);
+                                            await dm.SendMessageAsync(
+                                                $"You are going to kill {stalkee.GetUser().Username}.");
+                                            break;
+                                        }
+                                    }
+                                }
+                                
+                                _selectOptions[player.GetId()] = Players.Where(
+                                    x => x.GetId() != player.GetId()).ToList();
+
+                               await dm.SendMessageAsync(
+                                   "Who do you want to stalk? You will kill them the next night. " +
+                                   "Select someone with `-select <number>`:\n"
+                                   + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()], GetGuild())));
+                                break;
+                            }
                         }
                     }
-                    
+
                     // Wait Through Night Time
                     var stopwatch = new Stopwatch();
                     stopwatch.Start();
@@ -283,6 +310,15 @@ namespace MafiaBot {
                                 case MafiaPlayer.Role.Silencer:
                                     silencerToSilence.Add(target);
                                     break;
+                                case MafiaPlayer.Role.Hunter: {
+                                    var info = player.GetInfo<HunterRoleInfo>();
+                                    if (!info.IsStalking()) {
+                                        info.Stalk(target.GetId());
+                                        await dm.SendMessageAsync($"You stalked {target.GetUser().Username}. " +
+                                                                  $"He/She appears to be a {target.GetRole().ToString()}.");
+                                    }
+                                    break;
+                                }
                                 default:
                                     await dm.SendMessageAsync("You don't have anything to select from.");
                                     continue;
@@ -300,6 +336,13 @@ namespace MafiaBot {
 
                     if (mafiaToKill != null && !doctorToSave.Contains(mafiaToKill))
                         await Kill(mafiaToKill, DeathReason.MafiaAttack);
+
+                    foreach (var hunted in hunterToKill) {
+                        if (hunted == mafiaToKill) continue;
+                        if (doctorToSave.Contains(hunted)) continue;
+
+                        await Kill(hunted, DeathReason.HunterAttacked);
+                    }
                     
                     foreach (var silenced in silencerToSilence) {
                         var dm = await silenced.GetDm();
@@ -325,6 +368,16 @@ namespace MafiaBot {
                             newsBuilder.Append($"{mafiaToKill.GetUser().Username} was saved by a doctor!\n");
                         }
                     }
+                    
+                    foreach (var hunterTarget in hunterToKill) {
+                        if (hunterTarget == mafiaToKill) continue;
+                        newsBuilder.Append($"\nAnd {hunterTarget.GetUser().Username} was attacked by the hunter!\n");
+
+                        if (doctorToSave.Contains(hunterTarget)) {
+                            newsBuilder.Append("But doctor saved him!\n");
+                        }
+                    }
+                    
                     await SendGeneral(new EmbedBuilder()
                         .WithColor(embedColor)
                         .WithTitle(embedTitle)
@@ -417,6 +470,7 @@ namespace MafiaBot {
             await SendGeneral("Game is starting!");
             
             await AssignRoles();
+            await ChannelAllowBot(GetMafia());
             await ChannelVisibility(GetMafia(), false);
             await ChannelVisibility(GetMafia(), Players, x => x.GetRole() == MafiaPlayer.Role.Mafia);
             await EveryoneOnlyVisibility(GetDead());
@@ -548,6 +602,8 @@ namespace MafiaBot {
             await ChannelVisibility(GetGeneral(), true);
             await EveryoneOnlyVisibility(GetMafia());
             await ChannelVisibility(GetMafia(), true);
+            await EveryoneOnlyVisibility(GetDead());
+            await ChannelVisibility(GetDead(), true);
             await VoiceMute(true);
 
             foreach (var player in Killed)

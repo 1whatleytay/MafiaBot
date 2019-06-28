@@ -1,6 +1,7 @@
 # Mafioso - A Mafia Bot for Discord
 
 ## Table of Contents
+
 1. [What is it?](#what-is-it)
 2. [Why make it?](#why-make-it)
 3. [Key Features](#key-features)
@@ -29,13 +30,15 @@ Looking to [playtest](https://discord.gg/zfZjw4R)?
 Looking to [add it to your server](https://discordapp.com/oauth2/authorize?client_id=592865254086541322&scope=bot&permissions=474033168)?
 
 ## Why make it?
-We all love Mafia, but there are some issues we found that we thought we could tackle by making a Discord bot.
+The entire development team loves Mafia, but there are some issues we found that we thought we could tackle by making a Discord bot.
 Let's address some pitfalls we encounter while playing regular Mafia:
  - One person always has to serve as moderator.
    - You can't properly play when you don't have many people, since one person will always have to play moderator.
    - One person always has to sit out whether they like it or not, to assign roles and keep the game going. That's no fun!
  - People can often hold up games by forgetting or not speaking.
  - Moderators frequently have to speak to each person 1 by 1 during each night, which can make large games very slow.
+ - Some Mafia games don't have fun roles, or the roles are too difficult to keep track of by a moderator.
+   - For example, if an investigator asks you (the moderator) if a certain person is Mafia but you totally forgot, what do you do?
 
 As Mafia connoisseurs, we have also played on Discord. We also found some special issues with playing Mafia over voice call.
  - To give the Mafia a chance to send their role to the moderator, everyone has to mute!
@@ -161,7 +164,7 @@ Only reveal your role when it is of the essence.
 
 **Objective**: Stay alive until the end of the game.
 
-**Strength**: Able to pick1 person to completely silence each night.
+**Strength**: Able to pick 1 person to completely silence each night.
 
 **Friendly Roles**: No one.
 
@@ -177,11 +180,22 @@ I'm sure the town will understand if you explain that you're working for them...
 
 #### Hunter
 
-Not much is known about the hunter.
-He appears in large games.
-He attacks everyone he sees.
-He is a threat to the town.
-He has not be implemented yet give me a minute :P
+**Objective**: Stay alive until the end of the game.
+
+**Strength**: Able to pick a person to stalk and kill.
+
+**Friendly Roles**: No one.
+
+You are a crazy serial killer that feels nothing for everyone else in the game.
+If you didn't stalk anyone the night before, you will be asked who you want to stalk.
+You can select who you want to stalk with `-select <number>` where number is the number of the individual you want to stalk.
+You spend the night observing the person you stalk and you learn their exact role.
+
+However, the night after stalking someone, you will find the person you stalked and kill them.
+This will take up the whole night.
+
+As a Hunter, we hope that you will be able to make investigator claims and trick the town into trusting you.
+We also hope introducing a new killer into larger games can make the game more interesting.
 
 ### Night Time
 Night Time lasts approximately 60 seconds. In this time, everyone frantically tells the bot who they will target.
@@ -191,7 +205,7 @@ They will have to DM back `-select <number>` where \<number\> is the number of t
 They can only do this once.
 
 The Mafia are sent a similar list in their `#mafia` channel.
-They need vote for the individual they are going to kill with the `-vote <number>` command.
+They need to vote for the individual they are going to kill with the `-vote <number>` command.
 \<number\> is the number of the individual they want to target.
 If there is a majority vote, that person will be selected to be attacked.
 If not, the Mafia will stay home and eat popcorn.
@@ -201,7 +215,7 @@ If everyone has finished voting and selecting, the night will end immediately an
 ### Day Time
 During day time, there will be a short 30 second discussion period where everyone can share their information.
 
-Then a vote will be called.
+Then, a vote will be called.
 The bot will DM a list in `#general` and you can vote by typing `-vote <number>` where number is the number of the individual you want to target.
 If there is a majority vote, the individual will be put on "Last Stand."
 If there is not, it will go straight to night time.
@@ -209,10 +223,10 @@ If there is not, it will go straight to night time.
 The Mafia may try to influence the vote with lies, so be careful!
 
 ### Last Stand
-If someone is put on their last stand, they will be give 20 seconds of pure silence to help them defend themselves.
+If someone is put on their last stand, they will be given 20 seconds of pure silence to help them defend themselves.
 Then, the voting commences. Type `-vote 1` for innocent and `-vote 2` for guilty.
 
-If a more people vote innocent then guilty or if there is a tie, they will be acquitted.
+If more people vote innocent than guilty or if there is a tie, they will be acquitted.
 If most people vote guilty, they will be killed.
 
 After the Last Stand, the game will go straight to "Night Time."
@@ -230,7 +244,9 @@ The development team consists of these nerds:
  - **desgroup**, maker of features
  - **0S E0**, renowned writer and artist
  - **LazerHD**, adding that extra spice
- - **Ichorice Malign**, second amazing artist 
+ - **Ichorice Malign**, second amazing artist
+ 
+And also a big get better soon to **0S E0**.
 
 A special thanks to all the playtesters that kept on finding innovative new ways to break the bot (by usernames):
  - BluPheonix138

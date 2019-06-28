@@ -78,6 +78,14 @@ namespace MafiaBot {
                 ));
         }
 
+        protected async Task ChannelAllowBot(SocketTextChannel channel) {
+            await channel.AddPermissionOverwriteAsync(Client.CurrentUser,
+                new OverwritePermissions(
+                    viewChannel: PermValue.Allow,
+                    sendMessages: PermValue.Allow
+                ));
+        }
+
         protected async Task EveryoneOnlyVisibility(SocketTextChannel channel) {
             foreach (var permissionOverwrite in channel.PermissionOverwrites) {
                 if (permissionOverwrite.TargetType == PermissionTarget.User) {
