@@ -118,7 +118,7 @@ namespace MafiaBot {
         }
 
         public bool IsSetup() {
-            return GetCategory() != null && GetGeneral() != null && GetMafia() != null && GetDead() != null && GetDeadRole() != null;
+            return GetCategory() != null && GetGeneral() != null && GetMafia() != null && GetDead() != null && GetVc() != null && GetDeadRole() != null;
         }
 
         public async Task Setup() {
