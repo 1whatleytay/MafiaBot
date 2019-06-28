@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,7 +29,7 @@ namespace MafiaBot {
         private static readonly MafiaPlayer.Role[] GoodRoles = {
             MafiaPlayer.Role.Citizen,
             MafiaPlayer.Role.Doctor,
-            MafiaPlayer.Role.Investigator
+            MafiaPlayer.Role.Detective
         };
         
         private static readonly MafiaPlayer.Role[] MafiaRoles = {
@@ -82,14 +81,14 @@ namespace MafiaBot {
         protected async Task AssignRoles() {
             var mafiaCount = _config.Mafia.GetCount(Players.Count);
             var doctorCount = _config.Doctor.GetCount(Players.Count);
-            var investigatorCount = _config.Investigator.GetCount(Players.Count);
+            var detectiveCount = _config.Detective.GetCount(Players.Count);
             var silencerCount = _config.Silencer.GetCount(Players.Count);
             
             var pool = new List<MafiaPlayer>(Players);
 
             AssignPool(pool, mafiaCount, MafiaPlayer.Role.Mafia);
             AssignPool(pool, doctorCount, MafiaPlayer.Role.Doctor);
-            AssignPool(pool, investigatorCount, MafiaPlayer.Role.Investigator);
+            AssignPool(pool, detectiveCount, MafiaPlayer.Role.Detective);
             AssignPool(pool, silencerCount, MafiaPlayer.Role.Silencer);
             
             foreach (var player in Players) {

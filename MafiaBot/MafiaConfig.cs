@@ -5,13 +5,13 @@ namespace MafiaBot {
         public readonly MafiaConfigElement
             Mafia = new MafiaConfigElement(1.0 / 6.0, true, true),
             Doctor = new MafiaConfigElement(1.0 / 6.0, true),
-            Investigator = new MafiaConfigElement(1.0 / 5.0, true),
+            Detective = new MafiaConfigElement(1.0 / 5.0, true),
             Silencer = new MafiaConfigElement(1.0 / 7.0, true);
 
         public string GetDescription() {
             return $"**Mafia**: {Mafia.GetDescription()}\n" +
                    $"**Doctor**: {Doctor.GetDescription()}\n" +
-                   $"**Investigator**: {Investigator.GetDescription()}\n" +
+                   $"**Detective**: {Detective.GetDescription()}\n" +
                    $"**Silencer**: {Silencer.GetDescription()}\n";
         }
 
@@ -52,7 +52,9 @@ namespace MafiaBot {
                     case "invest":
                     case "investigator":
                     case "investigators":
-                        Investigator = element;
+                    case "detective":
+                    case "detectives":
+                        Detective = element;
                         break;
                     case "doctor":
                     case "doctors":

@@ -1,13 +1,13 @@
 namespace MafiaBot.Roles {
     public class DoctorRoleInfo {
-        private bool _didHealSelfLast;
+        private ulong? _healedLast;
 
-        public bool DidHealLast() {
-            return _didHealSelfLast;
+        public ulong? HealedLast() {
+            return _healedLast;
         }
 
-        public void Heal(bool self) {
-            _didHealSelfLast = self;
+        public void Heal(ulong user) {
+            _healedLast = user;
         }
     }
 }

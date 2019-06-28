@@ -18,10 +18,10 @@ using Context = Discord.Commands.ModuleBase<Discord.Commands.SocketCommandContex
 namespace MafiaBot {
     public class MafiaContext : MafiaPlayers {
         private const int DiscussionTime = 30000;
-        private const int DefendTime = 30000;
-        private const long CitizenVoteTime = 90000;
+        private const int DefendTime = 20000;
+        private const long CitizenVoteTime = 60000;
         private const long NightTime = 60000;
-        private const long LastStandVoteTime = 40000;
+        private const long LastStandVoteTime = 20000;
         
         private static readonly string[] DeathMessages = File.ReadAllLines("Lines/messages.txt");
         
@@ -53,8 +53,8 @@ namespace MafiaBot {
             }
         }
         
-        private static string RandomDeathMessage(ulong user) {
-            return string.Format(DeathMessages[Utils.Random.Next(DeathMessages.Length)], $"@<{user}>");
+        private static string RandomDeathMessage(string name) {
+            return string.Format(DeathMessages[Utils.Random.Next(DeathMessages.Length)], name);
         }
         
         private GameStatus _gameStatus = GameStatus.Closed;
@@ -181,8 +181,9 @@ namespace MafiaBot {
                         switch (player.GetRole()) {
                             case MafiaPlayer.Role.Doctor: {
                                 var doctorInfo = player.GetInfo<DoctorRoleInfo>();
-                                _selectOptions[player.GetId()] = doctorInfo.DidHealLast()
-                                    ? Players.Where(x => x != player).ToList()
+                                var healedLast = doctorInfo.HealedLast();
+                                _selectOptions[player.GetId()] = healedLast.HasValue
+                                    ? Players.Where(x => x.GetId() != healedLast.Value).ToList()
                                     : new List<MafiaPlayer>(Players);
 
                                 var dm = await player.GetDm();
@@ -191,7 +192,7 @@ namespace MafiaBot {
                                     + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()])));
                                 break;
                             }
-                            case MafiaPlayer.Role.Investigator: {
+                            case MafiaPlayer.Role.Detective: {
                                 _selectOptions[player.GetId()] = Players.Where(
                                     x => x.GetId() != player.GetId()).ToList();
 
@@ -253,11 +254,12 @@ namespace MafiaBot {
                             
                             if (!_selectOptions.ContainsKey(vote.Voter)) {
                                 await dm.SendMessageAsync("Wait until its your turn!");
+                                continue;
                             }
                             
                             var options = _selectOptions[vote.Voter];
                             
-                            if (vote.Vote <= 0 || vote.Vote > _voteOptions.Count) {
+                            if (vote.Vote <= 0 || vote.Vote > options.Count) {
                                 await dm.SendMessageAsync($"Please select a valid option (1 - {options.Count}).");
                                 continue;
                             }
@@ -269,7 +271,7 @@ namespace MafiaBot {
                                 case MafiaPlayer.Role.Doctor:
                                     doctorToSave.Add(target);
                                     break;
-                                case MafiaPlayer.Role.Investigator: {
+                                case MafiaPlayer.Role.Detective: {
                                     var isGood = IsGood(target);
                                     await dm.SendMessageAsync("The person you investigated... "
                                                               + (isGood ? "seems normal." : "is suspicious."));
@@ -301,8 +303,6 @@ namespace MafiaBot {
                         await dm.SendMessageAsync("You have been silenced! You aren't able to say anything!");
                     }
 
-                    if (CheckGameWin() != WinReason.NoWinYet) break;
-
                     // Day Time
                     await ChannelVisibility(GetGeneral(), Players, x => !silencerToSilence.Contains(x), true);
                     var embedTitle = "Uneventful night.";
@@ -314,11 +314,11 @@ namespace MafiaBot {
                         var userInfo = mafiaToKill.GetUser();
                         embedTitle = $"**{userInfo.Username}** was killed!";
                         embedColor = Color.Red;
-                        newsBuilder.Append(RandomDeathMessage(mafiaToKill.GetId()) + "\n");
+                        newsBuilder.Append(RandomDeathMessage(mafiaToKill.GetUser().Username) + "\n");
                         if (doctorToSave.Contains(mafiaToKill)) {
                             embedTitle = $"**{userInfo.Username}** was attacked and saved!";
                             embedColor = Color.Green;
-                            newsBuilder.Append($"<@{mafiaToKill.GetId()}> was saved by a doctor!\n");
+                            newsBuilder.Append($"{mafiaToKill.GetUser().Username} was saved by a doctor!\n");
                         }
                     }
                     await SendGeneral(new EmbedBuilder()
@@ -326,15 +326,17 @@ namespace MafiaBot {
                         .WithTitle(embedTitle)
                         .WithDescription(newsBuilder.ToString())
                         .Build());
-
+                    
+                    if (CheckGameWin() != WinReason.NoWinYet) break;
+                    
                     Thread.Sleep(DiscussionTime);
 
-                    MafiaPlayer citizenToKill = await DoCitizenVote(silencerToSilence);
+                    var citizenToKill = await DoCitizenVote(silencerToSilence);
 
                     // Last Stand
                     if (citizenToKill != null) {
                         await SendGeneral($"<@{citizenToKill.GetId()}> You're on your last stand. " +
-                                          "You have 30 seconds to defend yourself.");
+                                          "You have 20 seconds to defend yourself.");
                         await ChannelVisibility(GetGeneral(), Players,
                             x => x.GetId() == citizenToKill.GetId(), true);
                         Thread.Sleep(DefendTime);
@@ -351,9 +353,7 @@ namespace MafiaBot {
                         var guilty = new List<ulong>();
                         
                         stopwatch.Restart();
-                        while (stopwatch.ElapsedMilliseconds < LastStandVoteTime
-                               && guilty.Count < Players.Count / 2
-                               && innocent.Count < Players.Count / 2) {
+                        while (stopwatch.ElapsedMilliseconds < LastStandVoteTime) {
                             while (_voteQueue.Count > 0) {
                                 var vote = _voteQueue.Dequeue();
                                 
@@ -363,7 +363,7 @@ namespace MafiaBot {
                                 }
                 
                                 if (vote.Vote <= 0 || vote.Vote > 2) {
-                                    await SendGeneral($"Please select a valid option (1 - 2).");
+                                    await SendGeneral("Please select a valid option (1 - 2).");
                                     continue;
                                 }
 
@@ -381,10 +381,12 @@ namespace MafiaBot {
                                               $"<@{citizenToKill.GetId()}> is acquitted. " +
                                               "Time for bed!");
                         } else {
-                            await SendGeneral($"<@{citizenToKill.GetId()}> is found guilty. He is now dead. " +
+                            await SendGeneral($"<@{citizenToKill.GetId()}> is found guilty. He/She is now dead. " +
                                               "Everyone goes to bed.");
                             await Kill(citizenToKill, DeathReason.VotedOut);
                         }
+                    } else {
+                        await SendGeneral("No one was put on trial. Time to go to bed.");
                     }
                 }
 
@@ -400,6 +402,7 @@ namespace MafiaBot {
             await SendGeneral("Game is starting!");
             
             await AssignRoles();
+            await ChannelVisibility(GetMafia(), false);
             await ChannelVisibility(GetMafia(), Players, x => x.GetRole() == MafiaPlayer.Role.Mafia);
             var mafiaNames = string.Join(" ",
                 Players.Where(x => x.GetRole() == MafiaPlayer.Role.Mafia).Select(x => $"<@{x.GetId()}>"));

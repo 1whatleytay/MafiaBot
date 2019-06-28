@@ -8,17 +8,17 @@ using MafiaBot.Roles;
 
 namespace MafiaBot {
     public class MafiaPlayer {
-        private static readonly string CitizenDescription = File.ReadAllText("Lines/citizen.txt");
-        private static readonly string MafiaDescription = File.ReadAllText("Lines/mafia.txt");
-        private static readonly string DoctorDescription = File.ReadAllText("Lines/doctor.txt");
-        private static readonly string InvestigatorDescription = File.ReadAllText("Lines/investigator.txt");
-        private static readonly string SilencerDescription = File.ReadAllText("Lines/silencer.txt");
+        private static readonly string CitizenDescription = File.ReadAllText("Lines/Roles/citizen.txt");
+        private static readonly string MafiaDescription = File.ReadAllText("Lines/Roles/mafia.txt");
+        private static readonly string DoctorDescription = File.ReadAllText("Lines/Roles/doctor.txt");
+        private static readonly string DetectiveDescription = File.ReadAllText("Lines/Roles/detective.txt");
+        private static readonly string SilencerDescription = File.ReadAllText("Lines/Roles/silencer.txt");
         
         public enum Role {
             Citizen,
             Mafia,
             Doctor,
-            Investigator,
+            Detective,
             Silencer
         }
 
@@ -29,24 +29,30 @@ namespace MafiaBot {
                         .WithColor(Color.Green)
                         .WithTitle("You are a Citizen!")
                         .WithDescription(CitizenDescription)
+                        .WithImageUrl(
+                            "https://raw.githubusercontent.com/1whatleytay/MafiaBot/master/MafiaBot/Images/citizen.png")
                         .Build();
                 case Role.Mafia:
                     return new EmbedBuilder()
                         .WithColor(Color.Red)
                         .WithTitle("You are part of the Mafia!")
                         .WithDescription(MafiaDescription)
+                        .WithImageUrl(
+                            "https://github.com/1whatleytay/MafiaBot/blob/master/MafiaBot/Images/mafia.png")
                         .Build();
                 case Role.Doctor:
                     return new EmbedBuilder()
                         .WithColor(Color.Blue)
                         .WithTitle("You are the Doctor!")
-                        .WithTitle(DoctorDescription)
+                        .WithDescription(DoctorDescription)
                         .Build();
-                case Role.Investigator:
+                case Role.Detective:
                     return new EmbedBuilder()
                         .WithColor(Color.Orange)
-                        .WithTitle("You are the Investigator!")
-                        .WithDescription(InvestigatorDescription)
+                        .WithTitle("You are the Detective!")
+                        .WithDescription(DetectiveDescription)
+                        .WithImageUrl(
+                            "https://github.com/1whatleytay/MafiaBot/blob/master/MafiaBot/Images/detective.png")
                         .Build();
                 case Role.Silencer:
                     return new EmbedBuilder()
