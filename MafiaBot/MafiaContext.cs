@@ -18,11 +18,12 @@ using Context = Discord.Commands.ModuleBase<Discord.Commands.SocketCommandContex
 namespace MafiaBot {
     public class MafiaContext : MafiaPlayers {
         private const int DiscussionTime = 30000;
+        private const int DefendTime = 30000;
         private const long CitizenVoteTime = 90000;
-        private static readonly string[] DeathMessages = File.ReadAllLines(path: "Lines/messages.txt");
-        private const long SelectTime = 30000;
         private const long NightTime = 60000;
+        private const long LastStandVoteTime = 40000;
         
+        private static readonly string[] DeathMessages = File.ReadAllLines("Lines/messages.txt");
         
         private enum GameStatus {
             Lobby,
@@ -50,6 +51,10 @@ namespace MafiaBot {
                 default:
                     return "I win.";
             }
+        }
+        
+        private static string RandomDeathMessage(ulong user) {
+            return string.Format(DeathMessages[Utils.Random.Next(DeathMessages.Length)], $"@<{user}>");
         }
         
         private GameStatus _gameStatus = GameStatus.Closed;
@@ -199,7 +204,7 @@ namespace MafiaBot {
                             case MafiaPlayer.Role.Silencer: {
                                 _selectOptions[player.GetId()] = Players.Where(
                                     x => x.GetId() != player.GetId()).ToList();
-
+                                
                                 var dm = await player.GetDm();
                                 await dm.SendMessageAsync(
                                     "Who do you want to silence? Select someone with `-select <number>`:\n"
@@ -221,7 +226,7 @@ namespace MafiaBot {
                             
                             // Verify Vote
                             if (vote.Channel != GetMafia().Id) {
-                                Console.WriteLine("Ignored non-#mafia vote during mafia vote.");
+                                Console.WriteLine("Ignored non-#mafia vote.");
                                 continue;
                             }
                     
@@ -289,7 +294,7 @@ namespace MafiaBot {
                     _selectOptions.Clear();
 
                     if (mafiaToKill != null && !doctorToSave.Contains(mafiaToKill))
-                        await Kill(mafiaToKill);
+                        await Kill(mafiaToKill, DeathReason.MafiaAttack);
                     
                     foreach (var silenced in silencerToSilence) {
                         var dm = await silenced.GetDm();
@@ -300,25 +305,86 @@ namespace MafiaBot {
 
                     // Day Time
                     await ChannelVisibility(GetGeneral(), Players, x => !silencerToSilence.Contains(x), true);
+                    var embedTitle = "Uneventful night.";
+                    var embedColor = Color.Blue;
                     var newsBuilder = new StringBuilder();
-                    if (mafiaToKill == null)
+                    if (mafiaToKill == null) {
                         newsBuilder.Append("The mafia was asleep and didn't do anything.\n");
-                    else {
-                        newsBuilder.Append(RandomizeMessage(MessageType.Death,mafiaToKill.GetId()) + "\n");
-                        if (doctorToSave.Contains(mafiaToKill))
+                    }  else {
+                        var userInfo = mafiaToKill.GetUser();
+                        embedTitle = $"**{userInfo.Username}** was killed!";
+                        embedColor = Color.Red;
+                        newsBuilder.Append(RandomDeathMessage(mafiaToKill.GetId()) + "\n");
+                        if (doctorToSave.Contains(mafiaToKill)) {
+                            embedTitle = $"**{userInfo.Username}** was attacked and saved!";
+                            embedColor = Color.Green;
                             newsBuilder.Append($"<@{mafiaToKill.GetId()}> was saved by a doctor!\n");
+                        }
                     }
-                    await SendGeneral("Wake up everyone! Here's the rundown.\n" + newsBuilder + "Discuss!");
+                    await SendGeneral(new EmbedBuilder()
+                        .WithColor(embedColor)
+                        .WithTitle(embedTitle)
+                        .WithDescription(newsBuilder.ToString())
+                        .Build());
 
                     Thread.Sleep(DiscussionTime);
 
-                    var citizenToKill = await DoCitizenVote(silencerToSilence);
-                    
-                    if (citizenToKill == null) {
-                        await SendGeneral("No one died! Time for bed.");
-                    } else {
-                        await SendGeneral($"<@{citizenToKill.GetId()}> was killed. Now for the next day.");
-                        await Kill(citizenToKill);
+                    MafiaPlayer citizenToKill = await DoCitizenVote(silencerToSilence);
+
+                    // Last Stand
+                    if (citizenToKill != null) {
+                        await SendGeneral($"<@{citizenToKill.GetId()}> You're on your last stand. " +
+                                          "You have 30 seconds to defend yourself.");
+                        await ChannelVisibility(GetGeneral(), Players,
+                            x => x.GetId() == citizenToKill.GetId(), true);
+                        Thread.Sleep(DefendTime);
+                        
+                        // Make the game think there is a vote with two options, sketchy solution for now.
+                        await ChannelVisibility(GetGeneral(), Players, true);
+                        _voteOptions = new List<MafiaPlayer>();
+                        await SendGeneral("Guilty or innocent? Vote with `-vote <number>`." +
+                                          Utils.Code(
+                                              "1. Innocent\n" +
+                                              "2. Guilty"));
+
+                        var innocent = new List<ulong>();
+                        var guilty = new List<ulong>();
+                        
+                        stopwatch.Restart();
+                        while (stopwatch.ElapsedMilliseconds < LastStandVoteTime
+                               && guilty.Count < Players.Count / 2
+                               && innocent.Count < Players.Count / 2) {
+                            while (_voteQueue.Count > 0) {
+                                var vote = _voteQueue.Dequeue();
+                                
+                                if (silencerToSilence.Exists(x => x.GetId() == vote.Voter)) {
+                                    Console.WriteLine("Ignored silenced vote.");
+                                    continue;
+                                }
+                
+                                if (vote.Vote <= 0 || vote.Vote > 2) {
+                                    await SendGeneral($"Please select a valid option (1 - 2).");
+                                    continue;
+                                }
+
+                                if (innocent.Contains(vote.Voter)) innocent.Remove(vote.Voter);
+                                if (guilty.Contains(vote.Voter)) guilty.Remove(vote.Voter);
+                                
+                                if (vote.Vote == 1) innocent.Add(vote.Voter);
+                                if (vote.Vote == 2) guilty.Add(vote.Voter);
+                            }
+                        }
+                        _voteOptions = null;
+
+                        if (innocent.Count == guilty.Count) {
+                            await SendGeneral("Citizens are not convinced! " +
+                                              $"<@{citizenToKill.GetId()}> is acquitted. " +
+                                              "Time for bed!");
+                        } else {
+                            await SendGeneral($"<@{citizenToKill.GetId()}> is found guilty. He is now dead. " +
+                                              "Everyone goes to bed.");
+                            await Kill(citizenToKill, DeathReason.VotedOut);
+                        }
                     }
                 }
 
@@ -328,26 +394,9 @@ namespace MafiaBot {
                 await SendGeneral(Utils.Code("RunGame() Exception -> " + e.Message + "\n\n" + e.StackTrace));
             }
         }
-
-        // Enumeration to make RandomizeMessage work with many types of messages
-        private enum MessageType
-        {
-            Death = 0
-        }
-        private static string RandomizeMessage(MessageType type, ulong name)
-        {
-            var r = new Random();
-            switch (type)
-            {
-                case MessageType.Death:
-                    var message = String.Format(DeathMessages[r.Next(DeathMessages.Length)], $"@<{name}>");
-                    return message;
-                default:
-                    return "Invalid Message Type";
-            }
-        }
         
         private async Task InitializeGame() {
+            _gameStatus = GameStatus.InGame;
             await SendGeneral("Game is starting!");
             
             await AssignRoles();
@@ -369,7 +418,8 @@ namespace MafiaBot {
                 .Build());
         }
 
-        public async Task JoinGame(ulong user) {
+        public async Task JoinGame(SocketUserMessage message) {
+            var user = message.Author.Id;
             if (_gameStatus != GameStatus.Lobby) {
                 await SendGeneral("Excited? Please wait until the next game starts.");
                 return;
@@ -382,9 +432,13 @@ namespace MafiaBot {
             
             Players.Add(new MafiaPlayer(Client, user));
             await RefreshLobby();
+            // The Send/Delete approach here is used to prevent channel clutter but also give feedback to the user.
+            await message.Channel.SendMessageAsync($"<@{user}> joined the lobby.");
+            await message.DeleteAsync();
         }
 
-        public async Task LeaveGame(ulong user) {
+        public async Task LeaveGame(SocketUserMessage message) {
+            var user = message.Author.Id;
             if (_gameStatus != GameStatus.Lobby && _gameStatus != GameStatus.InGame) {
                 await SendGeneral("There isn't any game to leave!");
                 return;
@@ -397,6 +451,9 @@ namespace MafiaBot {
 
             Players.RemoveAll(x => x.GetId() == user);
             await RefreshLobby();
+            // Send/Delete approach explained above.
+            await message.Channel.SendMessageAsync($"<@{user}> left the lobby.");
+            await message.DeleteAsync();
         }
 
         public async Task VoteFor(MafiaVote vote) {
@@ -460,7 +517,6 @@ namespace MafiaBot {
                 return;
             }
 
-            _gameStatus = GameStatus.InGame;
             await InitializeGame();
         }
 

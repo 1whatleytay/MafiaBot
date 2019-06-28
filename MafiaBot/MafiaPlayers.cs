@@ -3,13 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Discord;
 using Discord.WebSocket;
 
 namespace MafiaBot {
     public class MafiaPlayers : MafiaChannels {
+        public enum DeathReason {
+            MafiaAttack,
+            VotedOut
+        }
+        
         protected readonly List<MafiaPlayer> Players = new List<MafiaPlayer>();
         protected readonly List<MafiaPlayer> Killed = new List<MafiaPlayer>();
         private MafiaConfig _config = new MafiaConfig();
+
+        private static string DeathDescription(DeathReason reason) {
+            switch (reason) {
+                case DeathReason.MafiaAttack:
+                    return "You got attacked by the Mafia.";
+                case DeathReason.VotedOut:
+                    return "You got voted out by the town.";
+            }
+            return "You somehow died.";
+        }
 
         private static readonly MafiaPlayer.Role[] GoodRoles = {
             MafiaPlayer.Role.Citizen,
@@ -41,11 +57,18 @@ namespace MafiaBot {
             return NeutralRoles.Contains(player.GetRole());
         }
         
-        protected async Task Kill(MafiaPlayer player) {
+        protected async Task Kill(MafiaPlayer player, DeathReason reason) {
             Players.Remove(player);
             Killed.Add(player);
 
             await ChannelVisibility(GetGeneral(), Killed, x => false, true);
+            
+            var dm = await player.GetDm();
+            await dm.SendMessageAsync("", false, new EmbedBuilder()
+                .WithColor(Color.Red)
+                .WithTitle("You are dead.")
+                .WithDescription(DeathDescription(reason))
+                .Build());
         }
 
         private void AssignPool(List<MafiaPlayer> pool, int count, MafiaPlayer.Role role) {

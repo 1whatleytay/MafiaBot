@@ -69,7 +69,7 @@ namespace MafiaBot.Commands {
             var game = GetOrCreateGame(Context);
             if (!await EnsureSetup(game)) return;
             
-            await game.JoinGame(Context.Message.Author.Id);
+            await game.JoinGame(Context.Message);
         }
 
         [Command("leave")]
@@ -78,7 +78,7 @@ namespace MafiaBot.Commands {
             var game = GetOrCreateGame(Context);
             if (!await EnsureSetup(game)) return;
 
-            await game.LeaveGame(Context.Message.Author.Id);
+            await game.LeaveGame(Context.Message);
         }
 
         [Command("start")]
@@ -136,6 +136,7 @@ namespace MafiaBot.Commands {
             }
             
             await game.VoteFor(new MafiaVote(Context.Message, vote));
+            await Context.Message.DeleteAsync();
         }
 
         [Command("select")]
