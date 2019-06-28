@@ -3,10 +3,10 @@ using System;
 namespace MafiaBot {
     public class MafiaConfig {
         public readonly MafiaConfigElement
-            Mafia = new MafiaConfigElement(1.0 / 6.0, true, true),
-            Doctor = new MafiaConfigElement(1.0 / 6.0, true),
-            Detective = new MafiaConfigElement(1.0 / 5.0, true),
-            Silencer = new MafiaConfigElement(1.0 / 7.0, true);
+            Mafia = new MafiaConfigElement(0),
+            Doctor = new MafiaConfigElement(0),
+            Detective = new MafiaConfigElement(0),
+            Silencer = new MafiaConfigElement(0);
 
         public string GetDescription() {
             return $"**Mafia**: {Mafia.GetDescription()}\n" +
@@ -15,7 +15,12 @@ namespace MafiaBot {
                    $"**Silencer**: {Silencer.GetDescription()}\n";
         }
 
-        public MafiaConfig() { }
+        public MafiaConfig() {
+            Mafia = new MafiaConfigElement(1.0 / 6.0, true, true);
+            Doctor = new MafiaConfigElement(1.0 / 6.0, true);
+            Detective = new MafiaConfigElement(1.0 / 5.0, true);
+            Silencer = new MafiaConfigElement(1.0 / 7.0, true);
+        }
 
         public MafiaConfig(string content) {
             var split = content.Replace(":", " ").Replace(",", " ").Split(" ");

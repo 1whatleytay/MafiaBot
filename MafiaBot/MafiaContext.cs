@@ -348,10 +348,10 @@ namespace MafiaBot {
                         await ChannelVisibility(GetGeneral(), Players, true);
                         await VoiceMute(Players, true);
                         _voteOptions = new List<MafiaPlayer>();
-                        await SendGeneral("Guilty or innocent? Vote with `-vote <number>`." +
-                                          Utils.Code(
-                                              "1. Innocent\n" +
-                                              "2. Guilty"));
+                        var options = Utils.Code(
+                            "1. Innocent\n" +
+                            "2. Guilty");
+                        var tally = await SendGeneral("Guilty or innocent? Vote with `-vote <number>`." + options);
 
                         var innocent = new List<ulong>();
                         var guilty = new List<ulong>();
@@ -371,11 +371,20 @@ namespace MafiaBot {
                                     continue;
                                 }
 
+                                if (vote.Voter == citizenToKill.GetId()) {
+                                    await SendGeneral("You can't vote for yourself, defendant.");
+                                    continue;
+                                }
+
                                 if (innocent.Contains(vote.Voter)) innocent.Remove(vote.Voter);
                                 if (guilty.Contains(vote.Voter)) guilty.Remove(vote.Voter);
                                 
                                 if (vote.Vote == 1) innocent.Add(vote.Voter);
                                 if (vote.Vote == 2) guilty.Add(vote.Voter);
+                                
+                                await tally.ModifyAsync(
+                                    x => x.Content = "Guilty or innocent? Vote with `-vote <number>`. " +
+                                                     $"{innocent.Count} Innocent, {guilty.Count} Guilty" + options);
                             }
                         }
                         _voteOptions = null;
@@ -420,7 +429,9 @@ namespace MafiaBot {
             await _lobbyMessage.ModifyAsync(x => x.Embed = new EmbedBuilder()
                 .WithColor(Color.Red)
                 .WithTitle($"Lobby ({Players.Count})")
-                .WithDescription((Players.Count >= 4 ? "Start with `-start`" : "Cannot Start") + "\n\n" +
+                .WithDescription(
+                    "Join with `-join`. " +
+                    (Players.Count >= 4 ? "Start with `-start`." : "Cannot Start.") + "\n\n" +
                                  string.Join("\n", Players.Select(y => $"**{y.GetUser().Username}**")))
                 .Build());
         }
@@ -510,6 +521,7 @@ namespace MafiaBot {
             _lobbyMessage = await SendGeneral(new EmbedBuilder()
                 .WithColor(Color.Blue)
                 .WithTitle("Empty Lobby")
+                .WithDescription("Join with `-join`.")
                 .Build());
         }
 

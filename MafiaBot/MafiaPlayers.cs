@@ -62,6 +62,8 @@ namespace MafiaBot {
 
             await ChannelVisibility(GetGeneral(), Killed, x => false, true);
             await VoiceMute(Killed, false);
+            if (IsMafia(player))
+                await ChannelVisibility(GetMafia(), new List<MafiaPlayer> { player }, false, true);
             
             var dm = await player.GetDm();
             await dm.SendMessageAsync("", false, new EmbedBuilder()
