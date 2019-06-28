@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 using Discord.Commands;
 
-namespace MafiaBot.Commands {
+namespace Mafioso.Commands {
     public class Info : ModuleBase<SocketCommandContext> {
         private static readonly string HelpText = File.ReadAllText("Lines/help.txt");
         [Command("help")]

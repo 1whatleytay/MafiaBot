@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 
-namespace MafiaBot {
+namespace Mafioso {
     public class MafiaPlayers : MafiaChannels {
         public enum DeathReason {
             MafiaAttack,

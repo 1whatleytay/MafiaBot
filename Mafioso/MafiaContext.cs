@@ -11,11 +11,11 @@ using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 
-using MafiaBot.Roles;
+using Mafioso.Roles;
 
 using Context = Discord.Commands.ModuleBase<Discord.Commands.SocketCommandContext>;
 
-namespace MafiaBot {
+namespace Mafioso {
     public class MafiaContext : MafiaPlayers {
         private const int DiscussionTime = 30000;
         private const int DefendTime = 20000;

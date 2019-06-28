@@ -1,6 +1,6 @@
 using Discord.WebSocket;
 
-namespace MafiaBot {
+namespace Mafioso {
     public struct MafiaVote {
         public readonly ulong Voter;
         public readonly ulong Channel;

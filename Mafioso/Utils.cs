@@ -2,7 +2,7 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace MafiaBot {
+namespace Mafioso {
     public static class Utils {
         public static readonly Random Random = new Random();
 

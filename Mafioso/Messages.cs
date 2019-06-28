@@ -9,7 +9,7 @@ using Discord.WebSocket;
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MafiaBot {
+namespace Mafioso {
     public class Messages {
         // Config
         private const char Prefix = '-';
@@ -20,13 +20,6 @@ namespace MafiaBot {
         private readonly CommandService _commands;
         private readonly ServiceProvider _services;
         
-        // Called for each user message. Use it to collect stats, or silently observe stuff, etc.
-        private static async Task MonitorMessage(SocketUserMessage message) {
-            if (!(message.Author is SocketGuildUser user) || message.Author.IsBot) return;
-
-            // Monitor Here
-        }
-        
         // Called by Discord.Net when it wants to log something.
         private static Task Log(LogMessage message) {
             Console.WriteLine(message.Message);
@@ -36,8 +29,6 @@ namespace MafiaBot {
         // Called by Discord.Net when the bot receives a message.
         private async Task CheckMessage(SocketMessage message) {
             if (!(message is SocketUserMessage userMessage)) return;
-
-            await MonitorMessage(userMessage);
 
             var prefixStart = 0;
 

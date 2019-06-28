@@ -9,7 +9,7 @@ using Discord.WebSocket;
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MafiaBot {
+namespace Mafioso {
     public class Bot {
         private readonly string _token;
 

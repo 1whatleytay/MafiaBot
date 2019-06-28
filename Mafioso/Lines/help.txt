@@ -1,7 +1,7 @@
 
 Here are some commands you might find helpful.
 
-For rules, please go to https://github.com/1whatleytay/MafiaBot/blob/master/README.md
+For rules, please go to https://github.com/1whatleytay/Mafioso/blob/master/README.md
 
 **Setting Up** (You MUST do this first): Creates the mafia category and functions
 Use the **[setup]** command like this: -setup

@@ -1,4 +1,4 @@
-namespace MafiaBot.Roles {
+namespace Mafioso.Roles {
     public class DoctorRoleInfo {
         private ulong? _healedLast;
 

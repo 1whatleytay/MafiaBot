@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 using Discord.Commands;
 
-namespace MafiaBot.Commands {
+namespace Mafioso.Commands {
     public class Debug : ModuleBase<SocketCommandContext> {
         // Ping!
         [Command("hi")]

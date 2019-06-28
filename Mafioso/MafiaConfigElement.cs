@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace MafiaBot {
+namespace Mafioso {
     public class MafiaConfigElement {
         private readonly double _number;
         private readonly bool _isPercentage;

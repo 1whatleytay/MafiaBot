@@ -1,6 +1,6 @@
 using System;
 
-namespace MafiaBot {
+namespace Mafioso {
     public class MafiaConfig {
         public readonly MafiaConfigElement
             Mafia = new MafiaConfigElement(0),

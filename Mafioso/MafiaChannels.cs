@@ -7,7 +7,7 @@ using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 
-namespace MafiaBot {
+namespace Mafioso {
     public class MafiaChannels {
         protected readonly DiscordSocketClient Client;
         private readonly ulong _guildId;

@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 
-using MafiaBot.Roles;
+using Mafioso.Roles;
 
-namespace MafiaBot {
+namespace Mafioso {
     public class MafiaPlayer {
         private static readonly string CitizenDescription = File.ReadAllText("Lines/Roles/citizen.txt");
         private static readonly string MafiaDescription = File.ReadAllText("Lines/Roles/mafia.txt");
@@ -32,7 +32,7 @@ namespace MafiaBot {
                         .WithTitle("You are a Citizen!")
                         .WithDescription(CitizenDescription)
                         .WithImageUrl(
-                            "https://raw.githubusercontent.com/1whatleytay/MafiaBot/master/MafiaBot/Images/citizen.png")
+                            "https://raw.githubusercontent.com/1whatleytay/Mafioso/master/Mafioso/Images/citizen.png")
                         .Build();
                 case Role.Mafia:
                     return new EmbedBuilder()
@@ -40,7 +40,7 @@ namespace MafiaBot {
                         .WithTitle("You are part of the Mafia!")
                         .WithDescription(MafiaDescription)
                         .WithImageUrl(
-                            "https://raw.githubusercontent.com/1whatleytay/MafiaBot/master/MafiaBot/Images/mafia.png")
+                            "https://raw.githubusercontent.com/1whatleytay/Mafioso/master/Mafioso/Images/mafia.png")
                         .Build();
                 case Role.Doctor:
                     return new EmbedBuilder()
@@ -54,7 +54,7 @@ namespace MafiaBot {
                         .WithTitle("You are the Detective!")
                         .WithDescription(DetectiveDescription)
                         .WithImageUrl(
-                            "https://raw.githubusercontent.com/1whatleytay/MafiaBot/master/MafiaBot/Images/detective.png")
+                            "https://raw.githubusercontent.com/1whatleytay/Mafioso/master/Mafioso/Images/detective.png")
                         .Build();
                 case Role.Silencer:
                     return new EmbedBuilder()

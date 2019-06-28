@@ -6,7 +6,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 
-namespace MafiaBot.Commands {
+namespace Mafioso.Commands {
     public class Mafia : ModuleBase<SocketCommandContext> {
         private static readonly Dictionary<ulong, MafiaContext> Games = new Dictionary<ulong, MafiaContext>();
 

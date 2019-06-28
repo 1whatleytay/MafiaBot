@@ -260,13 +260,13 @@ Custom game with 2 mafia, a hunter and a detective.
 
 Configs can also take the number and role in any order, have commas and colons and even aliases to the roles.
 
-**Oh boy, I hope they don't pick me.** - 
+Oh boy, I hope they don't pick me. - 
 Custom game with 5 detectives and 1 mafia.
 ```
 -config investigators: 5, 1 mafia
 ```
 
-**Be quiet!** -
+Be quiet! -
 Custom game with 3 mafia, 5 silencers and 2 detectives.
 ```
 -config mafias 3 5 silencers, detectives: 2
@@ -302,6 +302,7 @@ The development team consists of these nerds:
  - **0S E0**, renowned writer and artist
  - **LazerHD**, adding that extra spice
  - **Ichorice Malign**, second amazing artist
+ - **azharap23**, third amazing artist
  
 And also a big get better soon to **0S E0**.
 
@@ -309,7 +310,6 @@ A special thanks to all the playtesters that kept on finding innovative new ways
  - BluPheonix138
  - NoX
  - caspinprince
- - azharap23
  - Alibaba
  - Hockey_Man
  - Lord Donut
@@ -319,6 +319,5 @@ A special thanks to all the playtesters that kept on finding innovative new ways
  - LunarCoffee
  - Nicaninja
  - soupicide
- - v lorg dragon
  
  You are all awesome and this project would not have gotten very far without you!
