@@ -98,16 +98,17 @@ namespace MafiaBot {
 
             if (mafia >= notMafia) return WinReason.MafiaIsHalf;
             if (mafia == 0) return WinReason.EvilIsDead;
-
+            
             return WinReason.NoWinYet;
         }
 
-        private static string BuildVoteOptions(List<MafiaPlayer> options) {
+        private static string BuildVoteOptions(List<MafiaPlayer> options, SocketGuild guild) {
             var builder = new StringBuilder();
 
             for (var a = 0; a < options.Count; a++) {
                 var user = options[a].GetUser();
-                builder.Append($"{(a + 1).ToString().PadLeft(2, ' ')}. {user.Username}\n");
+                var nickname = guild.GetUser(user.Id).Nickname ?? user.Username;
+                builder.Append($"{(a + 1).ToString().PadLeft(2, ' ')}. {nickname}\n");
             }
             
             return builder.ToString();
@@ -116,7 +117,7 @@ namespace MafiaBot {
         private async Task<MafiaPlayer> DoCitizenVote(List<MafiaPlayer> cannotVote) {
             _voteOptions = new List<MafiaPlayer>(Players);
             await SendGeneral("Anyone suspicious? Vote for someone to kill with `-vote <number>`:\n"
-                              + Utils.Code(BuildVoteOptions(_voteOptions)));
+                              + Utils.Code(BuildVoteOptions(_voteOptions, GetGuild())));
 
             var validVotes = new List<MafiaVote>();
             var stopwatch = new Stopwatch();
@@ -177,7 +178,7 @@ namespace MafiaBot {
                     // Role Setup
                     _voteOptions = Players.Where(IsNotMafia).ToList();
                     await SendMafia("Who do want to kill? Vote with `-vote <number>`:\n"
-                                    + Utils.Code(BuildVoteOptions(_voteOptions)));
+                                    + Utils.Code(BuildVoteOptions(_voteOptions, GetGuild())));
 
                     foreach (var player in Players) {
                         switch (player.GetRole()) {
@@ -191,7 +192,7 @@ namespace MafiaBot {
                                 var dm = await player.GetDm();
                                 await dm.SendMessageAsync(
                                     "Who do you want to save? Select someone with `-select <number>`:\n"
-                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()])));
+                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()], GetGuild())));
                                 break;
                             }
                             case MafiaPlayer.Role.Detective: {
@@ -201,7 +202,7 @@ namespace MafiaBot {
                                 var dm = await player.GetDm();
                                 await dm.SendMessageAsync(
                                     "Who do you want to investigate? Select someone with `-select <number>`:\n"
-                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()])));
+                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()], GetGuild())));
                                 break;
                             }
                             case MafiaPlayer.Role.Silencer: {
@@ -211,7 +212,7 @@ namespace MafiaBot {
                                 var dm = await player.GetDm();
                                 await dm.SendMessageAsync(
                                     "Who do you want to silence? Select someone with `-select <number>`:\n"
-                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()])));
+                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()], GetGuild())));
                                 break;
                             }
                         }
@@ -418,6 +419,8 @@ namespace MafiaBot {
             await AssignRoles();
             await ChannelVisibility(GetMafia(), false);
             await ChannelVisibility(GetMafia(), Players, x => x.GetRole() == MafiaPlayer.Role.Mafia);
+            await EveryoneOnlyVisibility(GetDead());
+            await ChannelVisibility(GetDead(), false);
             var mafiaNames = string.Join(" ",
                 Players.Where(x => x.GetRole() == MafiaPlayer.Role.Mafia).Select(x => $"<@{x.GetId()}>"));
             await SendMafia($"**Welcome to the Mafia!** Your members are {mafiaNames}. Say hi.");

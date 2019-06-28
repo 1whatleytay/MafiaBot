@@ -60,7 +60,7 @@ namespace MafiaBot {
             Players.Remove(player);
             Killed.Add(player);
             await GetGuild().GetUser(player.GetId()).AddRoleAsync(GetDeadRole());
-
+            
             await ChannelVisibility(GetGeneral(), Killed, x => false, true);
             await ChannelVisibility(GetDead(), Killed, x => true);
             await VoiceMute(Killed, false);
