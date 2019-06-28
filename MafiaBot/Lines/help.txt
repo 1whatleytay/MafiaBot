@@ -9,23 +9,23 @@ Use the **[setup]** command like this: -setup
 **Game Management**
 
     **Creating a game**: Creates a lobby (4 players are needed to play)
-    Use the **[create]** command like this: -create 
+    Use the **[create]** command like this: `-create` 
     
    **Joining a game**: After creating a game, players can join
-    Use the **[join]** command like this: -join
+    Use the **[join]** command like this: `-join`
     
     **Starting a game**: When there are 4 or more users, the game can be started
-    Use the **[start]** command like this: -start
+    Use the **[start]** command like this: `-start`
     
     **Resetting a game**: Can be used to reset a game in progress
-    Use the **[reset]** command like this: -reset
+    Use the **[reset]** command like this: `-reset`
 
 **In Game Actions**
 
     **Selecting people**: If you're mafia, you'll use this to chose who you want to kill. If you're a citizen, you'll use it to vote people out during the day.
-    Use the **[vote <number>]** command like this: -vote 2 to vote to remove option 2
+    Use the **[vote <number>]** command like this: `-vote 2` to vote to remove option 2
     
      **Voting people out**:  The bot will ask you to use this in dms. Select the person you want to perform your action on (heal, investigate, etc).
-        Use the **[select <number>]** command like this: -select 2 to select option 2
+        Use the **[select <number>]** command like this: `-select 2` to select option 2
         
 Good luck!
