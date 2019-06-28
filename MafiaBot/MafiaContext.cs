@@ -162,6 +162,7 @@ namespace MafiaBot {
             return selected;
         }
 
+        // This is an enormous function that has most game logic.
         private async Task RunGame() {
             try {
                 while (CheckGameWin() == WinReason.NoWinYet) {
@@ -337,8 +338,8 @@ namespace MafiaBot {
 
                     // Last Stand
                     if (citizenToKill != null) {
-                        await SendGeneral($"<@{citizenToKill.GetId()}> You're on your last stand. " +
-                                          "You have 20 seconds to defend yourself.");
+                        await SendGeneral($"<@{citizenToKill.GetId()}> **You're on your last stand. " +
+                                          "You have 20 seconds to defend yourself.**");
                         await ChannelVisibility(GetGeneral(), Players,
                             x => x.GetId() == citizenToKill.GetId(), true);
                         await VoiceMute(Players, x => x.GetId() == citizenToKill.GetId());

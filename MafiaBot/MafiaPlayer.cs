@@ -38,7 +38,7 @@ namespace MafiaBot {
                         .WithTitle("You are part of the Mafia!")
                         .WithDescription(MafiaDescription)
                         .WithImageUrl(
-                            "https://github.com/1whatleytay/MafiaBot/blob/master/MafiaBot/Images/mafia.png")
+                            "https://raw.githubusercontent.com/1whatleytay/MafiaBot/master/MafiaBot/Images/mafia.png")
                         .Build();
                 case Role.Doctor:
                     return new EmbedBuilder()
@@ -52,7 +52,7 @@ namespace MafiaBot {
                         .WithTitle("You are the Detective!")
                         .WithDescription(DetectiveDescription)
                         .WithImageUrl(
-                            "https://github.com/1whatleytay/MafiaBot/blob/master/MafiaBot/Images/detective.png")
+                            "https://raw.githubusercontent.com/1whatleytay/MafiaBot/master/MafiaBot/Images/detective.png")
                         .Build();
                 case Role.Silencer:
                     return new EmbedBuilder()
