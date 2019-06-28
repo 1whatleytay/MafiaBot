@@ -12,7 +12,7 @@ namespace MafiaBot {
         protected readonly DiscordSocketClient Client;
         private readonly ulong _guildId;
         
-        private SocketGuild GetGuild() {
+        protected SocketGuild GetGuild() {
             return Client.GetGuild(_guildId);
         }
 
@@ -28,42 +28,52 @@ namespace MafiaBot {
             return GetCategory().Channels.FirstOrDefault(x => x.Name == "mafia") as SocketTextChannel;
         }
 
+        protected SocketTextChannel GetDead()
+        {
+            return GetCategory().Channels.FirstOrDefault(x => x.Name == "dead") as SocketTextChannel;
+        }
+
         protected SocketVoiceChannel GetVc() {
             return GetCategory().Channels.FirstOrDefault(x => x.Name == "Voice") as SocketVoiceChannel;
+        }
+
+        protected SocketRole GetDeadRole()
+        {
+            return GetGuild().Roles.FirstOrDefault(x => x.Name == "Dead");
         }
         
         // Copy of Visibility/Mute functions for convenience.
         protected async Task ChannelVisibility(SocketTextChannel channel, List<MafiaPlayer> players,
-            Func<MafiaPlayer, bool> filter, bool onlySending = false) {
+            Func<MafiaPlayer, bool> filter, bool onlyReceiving = false) {
             foreach (var player in players) {
                 var permission = filter(player) ? PermValue.Allow : PermValue.Deny;
                 await channel.AddPermissionOverwriteAsync(player.GetUser(),
                     new OverwritePermissions(
-                        viewChannel: onlySending ? PermValue.Allow : permission,
+                        viewChannel: onlyReceiving ? PermValue.Allow : permission,
                         sendMessages: permission
                     ));
             }
         }
         
         protected async Task ChannelVisibility(SocketTextChannel channel, List<MafiaPlayer> players,
-            bool visible, bool onlySending = false) {
+            bool visible, bool onlyReceiving = false) {
             var permission = visible ? PermValue.Allow : PermValue.Deny;
             
             foreach (var player in players) {
                 await channel.AddPermissionOverwriteAsync(player.GetUser(),
                     new OverwritePermissions(
-                        viewChannel: onlySending ? PermValue.Allow : permission,
+                        viewChannel: onlyReceiving ? PermValue.Allow : permission,
                         sendMessages: permission
                     ));
             }
         }
 
-        protected async Task ChannelVisibility(SocketTextChannel channel, bool visible, bool onlySending = false) {
+        protected async Task ChannelVisibility(SocketTextChannel channel, bool visible, bool onlyReceiving = false) {
             var permission = visible ? PermValue.Allow : PermValue.Deny;
             
             await channel.AddPermissionOverwriteAsync(GetGuild().EveryoneRole,
                 new OverwritePermissions(
-                    viewChannel: onlySending ? PermValue.Allow : permission,
+                    viewChannel: onlyReceiving ? PermValue.Allow : permission,
                     sendMessages: permission
                 ));
         }
@@ -108,16 +118,17 @@ namespace MafiaBot {
         }
 
         public bool IsSetup() {
-            return GetCategory() != null && GetGeneral() != null && GetMafia() != null;
+            return GetCategory() != null && GetGeneral() != null && GetMafia() != null && GetDead() != null && GetDeadRole() != null;
         }
 
         public async Task Setup() {
             var guild = GetGuild();
             
             ulong categoryId;
-            
-            ITextChannel general = null, mafia = null;
-            IAudioChannel vc = null;
+
+            IRole deadRole = null;
+            ITextChannel general = null, mafia = null, dead = null;
+            IVoiceChannel vc = null;
             if (guild.CategoryChannels.Any(x => x.Name == "Mafia")) {
                 var category = guild.CategoryChannels.First(x => x.Name == "Mafia");
                 categoryId = category.Id;
@@ -125,8 +136,11 @@ namespace MafiaBot {
                                                                 && x is ITextChannel) as ITextChannel;
                 mafia = category.Channels.FirstOrDefault(x => x.Name == "mafia"
                                                               && x is ITextChannel) as ITextChannel;
+                dead = category.Channels.FirstOrDefault(x => x.Name == "dead"
+                                                             && x is ITextChannel) as ITextChannel;
                 vc = category.Channels.FirstOrDefault(x => x.Name == "Voice"
-                                                           && x is IAudioChannel) as IAudioChannel;
+                                                           && x is IVoiceChannel) as IVoiceChannel;
+                deadRole = guild.Roles.FirstOrDefault(x => x.Name == "Dead");
             } else {
                 var category = await guild.CreateCategoryChannelAsync("Mafia");
                 categoryId = category.Id;
@@ -142,9 +156,22 @@ namespace MafiaBot {
                 await mafia.ModifyAsync(x => x.CategoryId = categoryId);
             }
 
+            if (dead == null)
+            {
+                dead = await GetGuild().CreateTextChannelAsync("dead");
+                await dead.ModifyAsync(x => x.CategoryId = categoryId);
+            }
+
             if (vc == null) {
                 vc = await GetGuild().CreateVoiceChannelAsync("Voice");
-                await mafia.ModifyAsync(x => x.CategoryId = categoryId);
+                await vc.ModifyAsync(x => x.CategoryId = categoryId);
+            }
+
+            if (deadRole == null)
+            {
+                deadRole = await GetGuild().CreateRoleAsync("Dead");
+                await deadRole.ModifyAsync(x => x.Position = 0);
+                await deadRole.ModifyAsync(x => x.Hoist = true);
             }
             
             await general.SendMessageAsync("Mafia is setup! Create a lobby with `-create`.");
@@ -165,7 +192,7 @@ namespace MafiaBot {
         protected async Task<RestUserMessage> SendMafia(Embed embed) {
             return await GetMafia().SendMessageAsync("", false, embed);
         }
-        
+
         protected MafiaChannels(DiscordSocketClient client, ulong guildId) {
             Client = client;
             _guildId = guildId;

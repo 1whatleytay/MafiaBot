@@ -546,6 +546,11 @@ namespace MafiaBot {
             await EveryoneOnlyVisibility(GetMafia());
             await ChannelVisibility(GetMafia(), true);
             await VoiceMute(true);
+
+            foreach (var player in Killed)
+            {
+                await GetGuild().GetUser(player.GetId()).RemoveRoleAsync(GetDeadRole());
+            }
             
             Players.Clear();
             Killed.Clear();
