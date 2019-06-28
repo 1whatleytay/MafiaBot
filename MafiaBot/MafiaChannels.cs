@@ -27,7 +27,12 @@ namespace MafiaBot {
         protected SocketTextChannel GetMafia() {
             return GetCategory().Channels.FirstOrDefault(x => x.Name == "mafia") as SocketTextChannel;
         }
+
+        protected SocketVoiceChannel GetVc() {
+            return GetCategory().Channels.FirstOrDefault(x => x.Name == "Voice") as SocketVoiceChannel;
+        }
         
+        // Copy of Visibility/Mute functions for convenience.
         protected async Task ChannelVisibility(SocketTextChannel channel, List<MafiaPlayer> players,
             Func<MafiaPlayer, bool> filter, bool onlySending = false) {
             foreach (var player in players) {
@@ -71,6 +76,33 @@ namespace MafiaBot {
             }
         }
 
+        protected async Task VoiceMute(List<MafiaPlayer> players, Func<MafiaPlayer, bool> filter) {
+            var vc = GetVc();
+            foreach (var user in vc.Users) {
+                var player = players.FirstOrDefault(x => x.GetId() == user.Id);
+                if (player == null) continue;
+                
+                await user.ModifyAsync(x => x.Mute = !filter(player));
+            }
+        }
+
+        protected async Task VoiceMute(List<MafiaPlayer> players, bool speakable) {
+            var vc = GetVc();
+            foreach (var user in vc.Users) {
+                var player = players.FirstOrDefault(x => x.GetId() == user.Id);
+                if (player == null) continue;
+                
+                await user.ModifyAsync(x => x.Mute = !speakable);
+            }
+        }
+
+        protected async Task VoiceMute(bool speakable) {
+            var vc = GetVc();
+            foreach (var user in vc.Users) {
+                await user.ModifyAsync(x => x.Mute = !speakable);
+            }
+        }
+        
         public bool IsValidGameChannel(ulong channel) {
             return GetGeneral().Id == channel || GetMafia().Id == channel;
         }
@@ -85,6 +117,7 @@ namespace MafiaBot {
             ulong categoryId;
             
             ITextChannel general = null, mafia = null;
+            IAudioChannel vc = null;
             if (guild.CategoryChannels.Any(x => x.Name == "Mafia")) {
                 var category = guild.CategoryChannels.First(x => x.Name == "Mafia");
                 categoryId = category.Id;
@@ -92,6 +125,8 @@ namespace MafiaBot {
                                                                 && x is ITextChannel) as ITextChannel;
                 mafia = category.Channels.FirstOrDefault(x => x.Name == "mafia"
                                                               && x is ITextChannel) as ITextChannel;
+                vc = category.Channels.FirstOrDefault(x => x.Name == "Voice"
+                                                           && x is IAudioChannel) as IAudioChannel;
             } else {
                 var category = await guild.CreateCategoryChannelAsync("Mafia");
                 categoryId = category.Id;
@@ -104,6 +139,11 @@ namespace MafiaBot {
             
             if (mafia == null) {
                 mafia = await GetGuild().CreateTextChannelAsync("mafia");
+                await mafia.ModifyAsync(x => x.CategoryId = categoryId);
+            }
+
+            if (vc == null) {
+                vc = await GetGuild().CreateVoiceChannelAsync("Voice");
                 await mafia.ModifyAsync(x => x.CategoryId = categoryId);
             }
             

@@ -167,6 +167,7 @@ namespace MafiaBot {
                 while (CheckGameWin() == WinReason.NoWinYet) {
                     // Night Time
                     await ChannelVisibility(GetGeneral(), Players, false, true);
+                    await VoiceMute(Players, false);
 
                     MafiaPlayer mafiaToKill = null;
                     var doctorToSave = new List<MafiaPlayer>();
@@ -305,6 +306,7 @@ namespace MafiaBot {
 
                     // Day Time
                     await ChannelVisibility(GetGeneral(), Players, x => !silencerToSilence.Contains(x), true);
+                    await VoiceMute(Players, x => !silencerToSilence.Contains(x));
                     var embedTitle = "Uneventful night.";
                     var embedColor = Color.Blue;
                     var newsBuilder = new StringBuilder();
@@ -339,10 +341,12 @@ namespace MafiaBot {
                                           "You have 20 seconds to defend yourself.");
                         await ChannelVisibility(GetGeneral(), Players,
                             x => x.GetId() == citizenToKill.GetId(), true);
+                        await VoiceMute(Players, x => x.GetId() == citizenToKill.GetId());
                         Thread.Sleep(DefendTime);
                         
                         // Make the game think there is a vote with two options, sketchy solution for now.
                         await ChannelVisibility(GetGeneral(), Players, true);
+                        await VoiceMute(Players, true);
                         _voteOptions = new List<MafiaPlayer>();
                         await SendGeneral("Guilty or innocent? Vote with `-vote <number>`." +
                                           Utils.Code(
@@ -528,6 +532,7 @@ namespace MafiaBot {
             await ChannelVisibility(GetGeneral(), true);
             await EveryoneOnlyVisibility(GetMafia());
             await ChannelVisibility(GetMafia(), true);
+            await VoiceMute(true);
             
             Players.Clear();
             Killed.Clear();
