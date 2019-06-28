@@ -347,7 +347,7 @@ namespace MafiaBot {
                         Thread.Sleep(DefendTime);
                         
                         // Make the game think there is a vote with two options, sketchy solution for now.
-                        await ChannelVisibility(GetGeneral(), Players, true);
+                        await ChannelVisibility(GetGeneral(), Players, x => !silencerToSilence.Contains(x));
                         await VoiceMute(Players, true);
                         _voteOptions = new List<MafiaPlayer>();
                         var options = Utils.Code(
