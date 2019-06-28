@@ -239,6 +239,63 @@ You will also have a shiny role.
 
 Dying usually means you lose the game. Don't do it.
 
+### Custom Games
+Ever wanted to make your own games? Well we added the `-config` command to do just that.
+Maybe you want to increase the amount of Mafia during your next game.
+Maybe you're crazy and you want to play a game with 5 Silencers and 4 Mafia.
+Either way, we got you covered.
+
+Running `-config` by itself will show you what the current game config is.
+We optimized it to be as scalable and fun as possible for us through many playtests, but maybe not for you.
+You can change how many of each role you have in this lobby by adding some stuff at the end of the command.
+
+#### Simplest Config
+By adding a several `number role` combos after `-config` you can manipulate the amount of each role.
+Sounds confusing? Here are some examples:
+
+Custom game with 2 mafia, a hunter and a detective.
+```
+-config 2 mafia 1 hunter 1 detective
+```
+
+Configs can also take the number and role in any order, have commas and colons and even aliases to the roles.
+
+**Oh boy, I hope they don't pick me.** - 
+Custom game with 5 detectives and 1 mafia.
+```
+-config investigators: 5, 1 mafia
+```
+
+**Be quiet!** -
+Custom game with 3 mafia, 5 silencers and 2 detectives.
+```
+-config mafias 3 5 silencers, detectives: 2
+```
+
+tl;dr Whatever you type after the `-config`, it's probably going to work.
+
+#### Advanced Configs
+You can make configs scale as the number of players increase or decrease.
+This isn't totally simple but I thought I would explain it here.
+We use this for the default config so it can scale, but if you don't understand- you're not missing out on much.
+
+Instead of the number option, you can put a percentage.
+The percentage specified will be the percent of players in that game that will have that role.
+
+Custom game where 20% of players will be mafia.
+```
+-custom 20% mafia
+```
+
+You can also prefix the number with a `+` to round up or a `-` to round down.
+
+Custom game where 25% of players will be mafia (rounded up) and 20% will be detectives (rounded down).
+```
+-custom +25% mafia -20% detective
+```
+
+tl;dr Configs can be complicated but if you study enough you can reuse them for all sorts of games.
+
 ## Who are we?
 The development team consists of these nerds:
  - **desgroup**, maker of features

@@ -51,6 +51,7 @@ namespace MafiaBot {
             if (index < number.Length && number[index] == '%') {
                 _number /= 100;
                 _isPercentage = true;
+                if (_number > 1) _number = 0;
                 index++;
             }
 
