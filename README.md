@@ -84,7 +84,7 @@ If you're confused why you've been muted, check out the "Night Time" section.
 ### Roles
 
 #### Citizen
-![Citizen Role](MafiaBot/Images/citizen.png)
+![Citizen Role](Mafioso/Images/citizen.png)
 
 **Objective**: Vote out all the Mafia.
 
@@ -100,7 +100,7 @@ Work with other friendly roles to find the Mafia and vote them out during the da
 For more on voting, see the "Day Time" section.
 
 #### Mafia
-![Citizen Role](MafiaBot/Images/mafia.png)
+![Citizen Role](Mafioso/Images/mafia.png)
 
 **Objective**: Have Mafia become majority of game (>50% of players are Mafia).
 
@@ -136,7 +136,7 @@ While your role can be especially powerful, it can also be dangerous.
 The Mafia is hunting you down, and if you aren't careful- you might not live much longer.
 
 #### Detective
-![Citizen Role](MafiaBot/Images/detective.png)
+![Citizen Role](Mafioso/Images/detective.png)
 
 **Objective**: Vote out all the Mafia.
 
@@ -179,6 +179,7 @@ However, if a detective investigates you- you will look suspicious.
 I'm sure the town will understand if you explain that you're working for them... but will you really?
 
 #### Hunter
+![Hunter Role](Mafioso/Images/hunter.png)
 
 **Objective**: Stay alive until the end of the game.
 

@@ -21,7 +21,7 @@ namespace Mafioso {
         private const int DefendTime = 20000;
         private const long CitizenVoteTime = 60000;
         private const long NightTime = 60000;
-        private const long LastStandVoteTime = 20000;
+        private const long LastStandVoteTime = 10000;
         
         private static readonly string[] DeathMessages = File.ReadAllLines("Lines/messages.txt");
         
