@@ -67,6 +67,8 @@ namespace Mafioso {
                         .WithColor(Color.Teal)
                         .WithTitle("You are the Hunter!")
                         .WithDescription(HunterDescription)
+                        .WithImageUrl(
+                            "https://raw.githubusercontent.com/1whatleytay/Mafioso/master/Mafioso/Images/hunter.png")
                         .Build();
                 default:
                     return new EmbedBuilder()

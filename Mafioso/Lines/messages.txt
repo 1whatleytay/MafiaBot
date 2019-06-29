@@ -3,4 +3,30 @@
 {0} forgot to wear their seatbelt.
 {0} fell off of a 8 story building.
 {0} was abducted by aliens.
-Breaking News! {0} fell out of an airplane!
+{0} fell out of an airplane!
+{0} was impaled by ninja stars.
+{0} was surrounded with fire!
+{0} stepped in a trap.
+{0} got stabbed with a machete.
+{0} got kunaied.
+{0} got tackled by a lantern.
+{0} got backstabbed.
+{0} got into a pillow fight above his caliber.
+{0} got stuck by a thunderbolt.
+{0} got Garu-ed.
+{0} got hacked.
+{0} saw a cringy dance. 
+{0} fell over while bowing.
+{0} was voodoo-ed to death.
+{0} got sent to the Shadow Realm.
+{0} got beaten in Club Penguin Card-Jitsu.
+{0} ran into a backdrop.
+{0} got attacked by a try hard.
+{0} got doxed.
+{0} encountered Pants Man! Pants Man uses Pants!
+{0} got stream sniped.
+{0} got SWAT-ed.
+{0} was attacked by ninjas.
+{0} got punched straight in the face.
+{0} was impaled by a diamond sword.
+{0} encountered a gun-bearing crow.

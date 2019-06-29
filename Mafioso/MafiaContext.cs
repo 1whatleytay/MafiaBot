@@ -21,7 +21,7 @@ namespace Mafioso {
         private const int DefendTime = 20000;
         private const long CitizenVoteTime = 60000;
         private const long NightTime = 60000;
-        private const long LastStandVoteTime = 10000;
+        private const long LastStandVoteTime = 15000;
         
         private static readonly string[] DeathMessages = File.ReadAllLines("Lines/messages.txt");
         
@@ -444,14 +444,14 @@ namespace Mafioso {
                         }
                         _voteOptions = null;
 
-                        if (innocent.Count == guilty.Count) {
-                            await SendGeneral("Citizens are not convinced! " +
-                                              $"<@{citizenToKill.GetId()}> is acquitted. " +
-                                              "Time for bed!");
-                        } else {
+                        if (innocent.Count < guilty.Count) {
                             await SendGeneral($"<@{citizenToKill.GetId()}> is found guilty. He/She is now dead. " +
                                               "Everyone goes to bed.");
                             await Kill(citizenToKill, DeathReason.VotedOut);
+                        } else {
+                            await SendGeneral("Citizens are not convinced! " +
+                                              $"<@{citizenToKill.GetId()}> is acquitted. " +
+                                              "Time for bed!");
                         }
                     } else {
                         await SendGeneral("No one was put on trial. Time to go to bed.");

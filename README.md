@@ -161,6 +161,7 @@ Beware, as the Mafia is trying to hunt you down.
 Only reveal your role when it is of the essence.
 
 #### Silencer
+![Silencer Role](Mafioso/Images/silencer.png)
 
 **Objective**: Stay alive until the end of the game.
 
