@@ -311,6 +311,7 @@ The development team consists of these nerds:
  - **desgroup**, maker of features
  - **0S E0**, renowned writer and artist
  - **LazerHD**, adding that extra spice
+ - **Ichorice Malign**, art contact and emergency rescue
  - **azharap23**, 10/10 cover artist
  
 And also a big get better soon to **0S E0**.
@@ -328,6 +329,5 @@ A special thanks to all the playtesters that kept on finding innovative new ways
  - LunarCoffee
  - Nicaninja
  - soupicide
- - Ichorice Malign
  
  You are all awesome and this project would not have gotten very far without you!
