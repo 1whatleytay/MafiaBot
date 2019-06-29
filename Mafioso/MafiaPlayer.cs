@@ -47,6 +47,8 @@ namespace Mafioso {
                         .WithColor(Color.Green)
                         .WithTitle("You are the Doctor!")
                         .WithDescription(DoctorDescription)
+                        .WithImageUrl(
+                            "https://raw.githubusercontent.com/1whatleytay/Mafioso/master/Mafioso/Images/doctor.png")
                         .Build();
                 case Role.Detective:
                     return new EmbedBuilder()
