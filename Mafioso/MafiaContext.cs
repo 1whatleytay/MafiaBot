@@ -102,13 +102,16 @@ namespace Mafioso {
             return WinReason.NoWinYet;
         }
 
-        private static string BuildVoteOptions(List<MafiaPlayer> options, SocketGuild guild) {
+        private string GetName(MafiaPlayer player) {
+            var user = GetGuild().GetUser(player.GetId());
+            return user.Nickname ?? user.Username;
+        }
+
+        private string BuildVoteOptions(List<MafiaPlayer> options) {
             var builder = new StringBuilder();
 
             for (var a = 0; a < options.Count; a++) {
-                var user = options[a].GetUser();
-                var nickname = guild.GetUser(user.Id).Nickname ?? user.Username;
-                builder.Append($"{(a + 1).ToString().PadLeft(2, ' ')}. {nickname}\n");
+                builder.Append($"{(a + 1).ToString().PadLeft(2, ' ')}. {GetName(options[a])}\n");
             }
             
             return builder.ToString();
@@ -117,7 +120,7 @@ namespace Mafioso {
         private async Task<MafiaPlayer> DoCitizenVote(List<MafiaPlayer> cannotVote) {
             _voteOptions = new List<MafiaPlayer>(Players);
             await SendGeneral("Anyone suspicious? Vote for someone to kill with `-vote <number>`:\n"
-                              + Utils.Code(BuildVoteOptions(_voteOptions, GetGuild())));
+                              + Utils.Code(BuildVoteOptions(_voteOptions)));
 
             var validVotes = new List<MafiaVote>();
             var stopwatch = new Stopwatch();
@@ -179,7 +182,7 @@ namespace Mafioso {
                     // Role Setup
                     _voteOptions = Players.Where(IsNotMafia).ToList();
                     await SendMafia("Who do want to kill? Vote with `-vote <number>`:\n"
-                                    + Utils.Code(BuildVoteOptions(_voteOptions, GetGuild())));
+                                    + Utils.Code(BuildVoteOptions(_voteOptions)));
 
                     foreach (var player in Players) {
                         switch (player.GetRole()) {
@@ -193,7 +196,7 @@ namespace Mafioso {
                                 var dm = await player.GetDm();
                                 await dm.SendMessageAsync(
                                     "Who do you want to save? Select someone with `-select <number>`:\n"
-                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()], GetGuild())));
+                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()])));
                                 break;
                             }
                             case MafiaPlayer.Role.Detective: {
@@ -203,7 +206,7 @@ namespace Mafioso {
                                 var dm = await player.GetDm();
                                 await dm.SendMessageAsync(
                                     "Who do you want to investigate? Select someone with `-select <number>`:\n"
-                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()], GetGuild())));
+                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()])));
                                 break;
                             }
                             case MafiaPlayer.Role.Silencer: {
@@ -213,7 +216,7 @@ namespace Mafioso {
                                 var dm = await player.GetDm();
                                 await dm.SendMessageAsync(
                                     "Who do you want to silence? Select someone with `-select <number>`:\n"
-                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()], GetGuild())));
+                                    + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()])));
                                 break;
                             }
                             case MafiaPlayer.Role.Hunter: {
@@ -227,7 +230,7 @@ namespace Mafioso {
                                         if (stalkee != null) {
                                             hunterToKill.Add(stalkee);
                                             await dm.SendMessageAsync(
-                                                $"You are going to kill {stalkee.GetUser().Username}.");
+                                                $"You are going to kill {GetName(stalkee)}.");
                                             break;
                                         }
                                     }
@@ -239,7 +242,7 @@ namespace Mafioso {
                                await dm.SendMessageAsync(
                                    "Who do you want to stalk? You will kill them the next night. " +
                                    "Select someone with `-select <number>`:\n"
-                                   + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()], GetGuild())));
+                                   + Utils.Code(BuildVoteOptions(_selectOptions[player.GetId()])));
                                 break;
                             }
                         }
@@ -300,6 +303,7 @@ namespace Mafioso {
                             switch (player.GetRole()) {
                                 case MafiaPlayer.Role.Doctor:
                                     doctorToSave.Add(target);
+                                    await dm.SendMessageAsync($"You decided to visit {GetName(target)}.");
                                     break;
                                 case MafiaPlayer.Role.Detective: {
                                     var isGood = IsGood(target);
@@ -309,12 +313,13 @@ namespace Mafioso {
                                 }
                                 case MafiaPlayer.Role.Silencer:
                                     silencerToSilence.Add(target);
+                                    await dm.SendMessageAsync($"You decided to silence {GetName(target)}");
                                     break;
                                 case MafiaPlayer.Role.Hunter: {
                                     var info = player.GetInfo<HunterRoleInfo>();
                                     if (!info.IsStalking()) {
                                         info.Stalk(target.GetId());
-                                        await dm.SendMessageAsync($"You stalked {target.GetUser().Username}. " +
+                                        await dm.SendMessageAsync($"You stalked {GetName(target)}. " +
                                                                   $"He/She appears to be a {target.GetRole().ToString()}.");
                                     }
                                     break;
@@ -358,20 +363,19 @@ namespace Mafioso {
                     if (mafiaToKill == null) {
                         newsBuilder.Append("The mafia was asleep and didn't do anything.\n");
                     }  else {
-                        var userInfo = mafiaToKill.GetUser();
-                        embedTitle = $"**{userInfo.Username}** was killed!";
+                        embedTitle = $"**{GetName(mafiaToKill)}** was killed!";
                         embedColor = Color.Red;
-                        newsBuilder.Append(RandomDeathMessage(mafiaToKill.GetUser().Username) + "\n");
+                        newsBuilder.Append(RandomDeathMessage(GetName(mafiaToKill)) + "\n");
                         if (doctorToSave.Contains(mafiaToKill)) {
-                            embedTitle = $"**{userInfo.Username}** was attacked and saved!";
+                            embedTitle = $"**{GetName(mafiaToKill)}** was attacked and saved!";
                             embedColor = Color.Green;
-                            newsBuilder.Append($"{mafiaToKill.GetUser().Username} was saved by a doctor!\n");
+                            newsBuilder.Append($"{GetName(mafiaToKill)} was saved by a doctor!\n");
                         }
                     }
                     
                     foreach (var hunterTarget in hunterToKill) {
                         if (hunterTarget == mafiaToKill) continue;
-                        newsBuilder.Append($"\nAnd {hunterTarget.GetUser().Username} was attacked by the hunter!\n");
+                        newsBuilder.Append($"\nAnd {GetName(hunterTarget)} was attacked by the hunter!\n");
 
                         if (doctorToSave.Contains(hunterTarget)) {
                             newsBuilder.Append("But doctor saved him!\n");
@@ -490,7 +494,7 @@ namespace Mafioso {
                 .WithDescription(
                     "Join with `-join`. " +
                     (Players.Count >= 4 ? "Start with `-start`." : "Cannot Start.") + "\n\n" +
-                                 string.Join("\n", Players.Select(y => $"**{y.GetUser().Username}**")))
+                                 string.Join("\n", Players.Select(y => $"**{GetName(y)}**")))
                 .Build());
         }
 

@@ -20,9 +20,9 @@ namespace Mafioso {
         public MafiaConfig() {
             Mafia = new MafiaConfigElement(1.0 / 6.0, true, true);
             Doctor = new MafiaConfigElement(1.0 / 6.0, true);
-            Detective = new MafiaConfigElement(1.0 / 10.0, true, true);
+            Detective = new MafiaConfigElement(1.0 / 9.0, true, true);
             Silencer = new MafiaConfigElement(1.0 / 7.0, true);
-            Hunter = new MafiaConfigElement(1.0 / 11.0, true);
+            Hunter = new MafiaConfigElement(1.0 / 10.0, true);
         }
 
         public MafiaConfig(string content) {

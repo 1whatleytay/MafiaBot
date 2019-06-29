@@ -61,6 +61,8 @@ namespace Mafioso {
                         .WithColor(Color.DarkPurple)
                         .WithTitle("You are the Silencer!")
                         .WithDescription(SilencerDescription)
+                        .WithImageUrl(
+                            "https://raw.githubusercontent.com/1whatleytay/Mafioso/master/Mafioso/Images/silencer.png")
                         .Build();
                 case Role.Hunter:
                     return new EmbedBuilder()
@@ -105,7 +107,7 @@ namespace Mafioso {
         public Role GetRole() {
             return _role;
         }
-
+        
         public SocketUser GetUser() {
             return _client.GetUser(_userId);
         }

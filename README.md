@@ -69,14 +69,21 @@ The first thing you need to do is run the `-setup` command.
 This will create a Mafia category, with `#general` and `#mafia` chats along with a voice chat.
 The bot does not automatically set up in order to not surprise you with freaky Mafia channels right off the bat.
 
+![Setup](Mafioso/Images/README/setup.png)
+
 If you're an administrator, you will have access to the `#mafia` channel no matter what.
 Play fair and mute that channel ASAP.
 Don't worry, if you're part of the Mafia the bot will ping you first.
 
 ### Creating, Joining and Starting a Game
 After setting up, you can create a new game lobby with `-create`.
+
+![Create](Mafioso/Images/README/create.png)
+
 Afterwards, each player who would like to join needs to use the `-join` command to join the lobby.
 Once everyone has joined, and you are ready to start, send `-start` to begin the game.
+
+![Start](Mafioso/Images/README/start.png)
 
 The bot should send everyone your roles in a few seconds, and the game should start off in night time.
 If you're confused why you've been muted, check out the "Night Time" section.
@@ -118,6 +125,7 @@ However, watch out. The Detective is constantly looking for you, and the Doctor 
 Choose wisely.
 
 #### Doctor
+![Doctor Role](Mafioso/Images/doctor.png)
 
 **Objective**: Vote out all the Mafia.
 
@@ -303,8 +311,7 @@ The development team consists of these nerds:
  - **desgroup**, maker of features
  - **0S E0**, renowned writer and artist
  - **LazerHD**, adding that extra spice
- - **Ichorice Malign**, second amazing artist
- - **azharap23**, third amazing artist
+ - **azharap23**, 10/10 cover artist
  
 And also a big get better soon to **0S E0**.
 
@@ -321,5 +328,6 @@ A special thanks to all the playtesters that kept on finding innovative new ways
  - LunarCoffee
  - Nicaninja
  - soupicide
+ - Ichorice Malign
  
  You are all awesome and this project would not have gotten very far without you!
